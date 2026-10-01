@@ -473,7 +473,8 @@ export function DashboardView() {
           </div>
         </CardHeader>
         <CardContent className="px-0">
-          <div className="overflow-x-auto scrollbar-medical">
+          {/* Desktop table */}
+          <div className="hidden overflow-x-auto scrollbar-medical sm:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -548,6 +549,49 @@ export function DashboardView() {
                 )}
               </tbody>
             </table>
+          </div>
+          {/* Mobile cards */}
+          <div className="space-y-2 p-3 sm:hidden">
+            {loading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="rounded-xl border border-border p-3">
+                  <Skeleton className="mb-2 h-4 w-24" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              ))
+            ) : recent.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">No research cases match the filter.</p>
+            ) : (
+              recent.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => { setSelectedCase(c.id); setView("cases"); }}
+                  className="w-full rounded-xl border border-border bg-card p-3 text-left transition-colors active:bg-muted/60"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-semibold text-primary">{c.caseId}</span>
+                    <span className="text-[10px] text-muted-foreground">{c.createdAt.slice(0, 10)}</span>
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-2 text-xs text-foreground">
+                    <span>{c.age}y</span><span className="text-muted-foreground">·</span>
+                    <span className="truncate">{c.implantSite}</span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <Badge variant={c.cbctAvailable ? "secondary" : "outline"} className="text-[10px]">{c.cbctAvailable ? c.cbctQuality : "N/A"}</Badge>
+                    {c.prediction && (
+                      <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", c.prediction.predictedOutcome === "Success" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600")}>
+                        {c.prediction.predictedOutcome} · {Math.round(c.prediction.probability * 100)}%
+                      </span>
+                    )}
+                    {c.outcome?.documentedOutcome && (
+                      <Badge variant="outline" className={cn("text-[10px]", c.outcome.documentedOutcome === "Success" ? "border-emerald-200 text-emerald-700" : "border-red-200 text-red-600")}>
+                        Actual: {c.outcome.documentedOutcome}
+                      </Badge>
+                    )}
+                  </div>
+                </button>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

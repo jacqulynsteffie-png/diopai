@@ -60,3 +60,32 @@ Work Log:
 Stage Summary:
 - ✅ App verified end-to-end: login → dashboard → wizard → prediction (incl. LLM summary) → model performance → cases slide-over → command palette → dark mode → mobile responsive → footer.
 - All core interactions functional. No console/runtime errors. Task complete.
+
+---
+Task ID: mobile-opt
+Agent: main (orchestrator)
+Task: Optimize for mobile view.
+
+Work Log:
+- Created shared nav-config.tsx (single source of truth for sidebar, drawer, bottom nav).
+- Refactored Sidebar to desktop-only (hidden lg:flex); unchanged desktop behavior + tooltips when collapsed.
+- Built MobileNav: fixed bottom navigation bar (5 primary + More) with active indicator + slide-out drawer (Sheet side=left) grouping all nav items by Overview/Research/AI/Data/System + New Case + profile.
+- Updated Topbar for mobile: brand LogoMark (lg:hidden), tighter gap/padding, smaller title (text-[15px] sm:text-[17px]).
+- Updated AppShell: responsive layout — desktop sidebar on lg+, mobile layout (topbar + content + bottom nav) below; footer gets pb-20 lg:pb-4 so it clears the fixed bottom nav; main padding responsive (px-3 py-4 → lg:px-8).
+- Made dashboard recent-cases table collapse to cards on mobile (hidden sm:block table + sm:hidden card list).
+- Made cases-view table collapse to cards on mobile with per-row actions.
+- New Case wizard dialog: mobile-friendly width (w-[calc(100%-1rem)]) + max-h-[100dvh].
+
+Verification (Agent Browser @ 390×844):
+- Sidebar hidden (0px) on mobile; bottom nav present (64px, 6 items).
+- Dashboard renders fully: 4 stat cards w/ trends, charts, model status, recent-case cards.
+- Bottom-nav navigation works (Dashboard → Predictions); drawer opens with all grouped nav items; navigated to Model Performance.
+- Cases view: table display:none on mobile, mobile cards render with case IDs + badges + actions.
+- New Case wizard opens on mobile with all Step 1 fields + de-identified notice.
+- Footer content clears bottom nav (764 ≤ 780) when scrolled to bottom.
+- Responsive breakpoints: 768px = mobile layout; 1024px = desktop sidebar visible + bottom nav hidden.
+- No console/runtime errors across all interactions; lint clean.
+
+Stage Summary:
+- Mobile fully optimized: sidebar → drawer + bottom nav; tables → cards; touch-friendly; responsive footer; dialogs usable.
+- Desktop behavior preserved (≥1024px). All views verified on mobile.

@@ -2,28 +2,10 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  LayoutDashboard,
-  FolderSearch,
-  ScanLine,
-  Stethoscope,
-  Target,
-  Brain,
-  Activity,
-  BarChart3,
-  Database,
-  FileText,
-  ShieldCheck,
-  Users,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  ClipboardList,
-  Sparkles,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import type { ViewId } from "@/lib/types";
 import { Logo } from "./logo";
+import { NAV, groupNav } from "./nav-config";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -32,59 +14,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-interface NavItem {
-  id: ViewId;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  group: string;
-}
-
-const NAV: NavItem[] = [
-  { id: "dashboard", label: "Overview", icon: LayoutDashboard, group: "Overview" },
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, group: "Overview" },
-
-  { id: "cases", label: "Research Cases", icon: FolderSearch, group: "Research" },
-  { id: "cbct", label: "CBCT Features", icon: ScanLine, group: "Research" },
-  { id: "clinical", label: "Clinical Data", icon: Stethoscope, group: "Research" },
-  { id: "outcomes", label: "Outcomes", icon: Target, group: "Research" },
-
-  { id: "prediction", label: "Predictions", icon: Brain, group: "AI" },
-  { id: "model-performance", label: "Model Performance", icon: Activity, group: "AI" },
-  { id: "feature-analysis", label: "Feature Analysis", icon: BarChart3, group: "AI" },
-
-  { id: "dataset", label: "Dataset", icon: Database, group: "Data" },
-  { id: "reports", label: "Research Reports", icon: FileText, group: "Data" },
-
-  { id: "audit", label: "Audit Logs", icon: ShieldCheck, group: "System" },
-  { id: "users", label: "Users", icon: Users, group: "System" },
-  { id: "settings", label: "Settings", icon: Settings, group: "System" },
-];
-
 export function Sidebar() {
-  const { view, setView, sidebarCollapsed, toggleSidebar, currentUser } =
+  const { view, setView, sidebarCollapsed, toggleSidebar, currentUser, openNewCase } =
     useAppStore();
   const collapsed = sidebarCollapsed;
-
-  // group items, but the first "Overview" entry duplicates dashboard; keep single
-  const groups = React.useMemo(() => {
-    const seen = new Set<string>();
-    const g: Record<string, NavItem[]> = {};
-    for (const item of NAV) {
-      if (item.group === "Overview" && seen.has(item.id)) continue;
-      seen.add(item.id);
-      (g[item.group] ??= []).push(item);
-    }
-    return g;
-  }, []);
+  const groups = React.useMemo(() => groupNav(), []);
 
   return (
     <TooltipProvider delayDuration={0}>
       <motion.aside
         animate={{ width: collapsed ? 76 : 264 }}
         transition={{ type: "spring", stiffness: 320, damping: 32 }}
-        className={cn(
-          "relative z-30 flex h-screen flex-col border-r border-white/5 bg-[#0B1220] text-slate-200 shrink-0"
-        )}
+        className="relative z-30 hidden h-screen flex-col border-r border-white/5 bg-[#0B1220] text-slate-200 shrink-0 lg:flex"
       >
         {/* Header */}
         <div className="flex h-16 items-center px-4 border-b border-white/5">
@@ -143,7 +84,7 @@ export function Sidebar() {
         {/* Quick: New Case */}
         <div className="px-2.5 pb-2.5">
           <button
-            onClick={() => useAppStore.getState().openNewCase()}
+            onClick={openNewCase}
             className={cn(
               "flex w-full items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/10",
               collapsed && "justify-center"
@@ -195,3 +136,6 @@ export function Sidebar() {
     </TooltipProvider>
   );
 }
+
+// Re-export for convenience
+export { NAV };

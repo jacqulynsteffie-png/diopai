@@ -6,6 +6,7 @@ import { Search, Bell, Moon, Sun, ChevronDown, LogOut, User, Settings as Setting
 import { useAppStore } from "@/lib/store";
 import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
+import { LogoMark } from "./logo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,7 +62,11 @@ export function Topbar() {
   });
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border/70 bg-glass glass px-4 sm:px-6">
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-2 border-b border-border/70 bg-glass glass px-3 sm:gap-3 sm:px-6">
+      {/* Mobile brand mark */}
+      <div className="flex items-center gap-2 lg:hidden">
+        <LogoMark className="h-8 w-8" />
+      </div>
       {/* Title */}
       <div className="min-w-0 flex-1">
         <AnimatePresence mode="wait">
@@ -72,7 +77,7 @@ export function Topbar() {
             exit={{ opacity: 0, y: 6 }}
             transition={{ duration: 0.2 }}
           >
-            <h1 className="truncate text-[17px] font-semibold tracking-tight text-foreground">
+            <h1 className="truncate text-[15px] font-semibold tracking-tight text-foreground sm:text-[17px]">
               {meta.title}
             </h1>
             <p className="hidden truncate text-xs text-muted-foreground sm:block">

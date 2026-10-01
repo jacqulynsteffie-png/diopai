@@ -7,6 +7,7 @@ import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 import { DemoBanner } from "./demo-banner";
 import { CommandPalette } from "./command-palette";
+import { MobileNav } from "./mobile-nav";
 import { LoginView } from "@/components/views/login-view";
 import { DashboardView } from "@/components/views/dashboard-view";
 import { CasesView } from "@/components/views/cases-view";
@@ -60,13 +61,13 @@ export function AppShell() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              className="mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8"
+              className="mx-auto w-full max-w-[1500px] px-3 py-4 sm:px-6 sm:py-6 lg:px-8"
             >
               <ViewComponent />
             </motion.div>
           </AnimatePresence>
         </main>
-        <footer className="mt-auto border-t border-border/70 bg-card/40 px-6 py-4">
+        <footer className="mt-auto border-t border-border/70 bg-card/40 px-4 py-4 pb-20 sm:px-6 lg:pb-4">
           <div className="mx-auto flex max-w-[1500px] flex-col items-center justify-between gap-2 text-[11px] text-muted-foreground sm:flex-row">
             <p>
               ImplantAI Research · Retrospective study ·{" "}
@@ -80,6 +81,7 @@ export function AppShell() {
           </div>
         </footer>
       </div>
+      <MobileNav />
       <CommandPalette />
       <NewCaseWizard />
     </div>

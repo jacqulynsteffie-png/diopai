@@ -197,7 +197,7 @@ export function CasesView() {
             </Select>
           </div>
         </div>
-        <div className="overflow-x-auto scrollbar-medical">
+        <div className="hidden overflow-x-auto scrollbar-medical sm:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -270,6 +270,49 @@ export function CasesView() {
               )}
             </tbody>
           </table>
+        </div>
+        {/* Mobile cards */}
+        <div className="space-y-2 p-3 sm:hidden">
+          {paged.length === 0 ? (
+            <EmptyState
+              title="No research cases found"
+              desc="Try adjusting filters, or create your first case."
+              action={<Button className="bg-brand-gradient text-white" onClick={openNewCase}><Plus className="h-4 w-4" /> New</Button>}
+            />
+          ) : (
+            paged.map((c) => (
+              <div key={c.id} className="rounded-xl border border-border bg-card p-3">
+                <div className="flex items-center justify-between">
+                  <button onClick={() => setSelectedCase(c.id)} className="text-left">
+                    <span className="font-mono text-xs font-semibold text-primary">{c.caseId}</span>
+                  </button>
+                  <span className="text-[10px] text-muted-foreground">{c.createdAt.slice(0, 10)}</span>
+                </div>
+                <div className="mt-1.5 flex items-center gap-2 text-xs text-foreground">
+                  <span>{c.age}y</span><span className="text-muted-foreground">·</span>
+                  <span>{c.sex}</span><span className="text-muted-foreground">·</span>
+                  <span className="truncate">{c.implantSite}</span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <Badge variant={c.cbctAvailable ? "secondary" : "outline"} className="text-[10px]">{c.cbctAvailable ? c.cbctQuality : "N/A"}</Badge>
+                  <Badge variant="outline" className={cn("text-[10px]", c.eligibility === "Eligible" ? "border-emerald-200 text-emerald-700" : c.eligibility === "Requires Review" ? "border-amber-200 text-amber-700" : "border-red-200 text-red-600")}>{c.eligibility}</Badge>
+                  {c.prediction && (
+                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", c.prediction.predictedOutcome === "Success" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600")}>
+                      {c.prediction.predictedOutcome} · {Math.round(c.prediction.probability * 100)}%
+                    </span>
+                  )}
+                  {c.outcome?.documentedOutcome && (
+                    <Badge variant="outline" className={cn("text-[10px]", c.outcome.documentedOutcome === "Success" ? "border-emerald-200 text-emerald-700" : "border-red-200 text-red-600")}>Actual: {c.outcome.documentedOutcome}</Badge>
+                  )}
+                </div>
+                <div className="mt-2.5 flex items-center justify-end gap-1 border-t border-border/60 pt-2">
+                  <IconAction label="View" onClick={() => setSelectedCase(c.id)}><Eye className="h-3.5 w-3.5" /></IconAction>
+                  <IconAction label="Prediction" onClick={() => { setSelectedCase(c.id); setView("prediction"); }}><Brain className="h-3.5 w-3.5" /></IconAction>
+                  <IconAction label="Report" onClick={() => { setView("reports"); }}><FileText className="h-3.5 w-3.5" /></IconAction>
+                </div>
+              </div>
+            ))
+          )}
         </div>
         {/* pagination */}
         <div className="flex items-center justify-between border-t border-border px-4 py-2.5">

@@ -263,7 +263,7 @@ export function NewCaseWizard() {
 
   return (
     <Dialog open={newCaseOpen} onOpenChange={(o) => { if (!o) close(); }}>
-      <DialogContent className="max-w-4xl gap-0 overflow-hidden p-0 sm:rounded-2xl">
+      <DialogContent className="max-h-[100dvh] w-[calc(100%-1rem)] max-w-4xl gap-0 overflow-hidden p-0 sm:rounded-2xl [&>button]:right-3 [&>button]:top-3">
         {/* Header / step indicator */}
         <div className="relative border-b border-border bg-brand-gradient-soft px-6 py-4">
           <div className="flex items-center justify-between">
