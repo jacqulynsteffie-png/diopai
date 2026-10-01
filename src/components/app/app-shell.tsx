@@ -13,6 +13,7 @@ import { DashboardView } from "@/components/views/dashboard-view";
 import { CasesView } from "@/components/views/cases-view";
 import { NewCaseWizard } from "@/components/views/new-case-wizard";
 import { CbctView } from "@/components/views/cbct-view";
+import { CbctWorkspace } from "@/components/views/cbct-workspace";
 import { ClinicalView } from "@/components/views/clinical-view";
 import { OutcomesView } from "@/components/views/outcomes-view";
 import { PredictionView } from "@/components/views/prediction-view";
@@ -27,6 +28,7 @@ import { SettingsView } from "@/components/views/settings-view";
 const VIEW_COMPONENTS: Record<string, React.ComponentType> = {
   dashboard: DashboardView,
   cases: CasesView,
+  "cbct-workspace": CbctWorkspace,
   cbct: CbctView,
   clinical: ClinicalView,
   outcomes: OutcomesView,

@@ -111,3 +111,35 @@ Verification (Agent Browser):
 
 Stage Summary:
 - Analytics overlap bar fixed; impressive neural-radar prediction animation; CBCT upload→verify→verified flow; alignment perfected across dashboard/model-performance/prediction.
+
+---
+Task ID: cbct-ai-workspace-upgrade
+Agent: main (orchestrator)
+Task: Transform app into premium CBCT AI imaging research platform (preserve existing modules).
+
+Work Log:
+- Created CBCT domain types + processing state machine (cbct-types.ts): IDLE→UPLOADING→VALIDATING→VERIFYING_IMAGE→ANALYZING_QUALITY→CHECKING_ORIENTATION→CHECKING_ANATOMY→CHECKING_IMPLANT_SITE→EXTRACTING_FEATURES→READY_FOR_REVIEW→PREDICTING→COMPLETE→FAILED + ERROR_CODES (INVALID_DICOM, INSUFFICIENT_COVERAGE, IMAGE_QUALITY_LOW, MODEL_UNAVAILABLE, FEATURE_EXTRACTION_FAILED, DISGUISED_FILE).
+- Backend AI services (real magic-byte validation, DEMO-labeled results):
+  • /api/cbct/upload — probes real file bytes (DICM@128 / ZIP / NIfTI); rejects renamed 2D images (JPG/PNG/GIF/TIFF/BMP) with INVALID_DICOM "renamed 2D image"; returns structured file info (slices, dims, voxel spacing, studyId=null).
+  • /api/cbct/validate — structural checklist + Privacy Check (de-identification).
+  • /api/cbct/verify — AI CBCT verification checklist (volume, coverage, quality, site, artifacts).
+  • /api/cbct/quality — AI image quality grade (GOOD/REVIEW/INSUFFICIENT) + metrics.
+  • /api/cbct/extract-features — data-dictionary features only (no invented variables) w/ confidence.
+- Reusable AiProcessingCore (components/ai): scanning beam, neural particles, rotating radar sweep, dashed orbit, pulsing gradient core w/ 4 neural nodes, data points converging to core (extract/predict), animated step list, "DEMO AI ANALYSIS" badge. Stage-driven, reusable.
+- MPR Viewer (components/cbct): Axial/Coronal/Sagittal with synchronized crosshair (click/drag in any plane updates the other two), slice sliders, zoom, synthetic anatomical canvas (no fake patient data), AI overlay toggle (translucent ROI placeholder only).
+- CBCT AI Workspace view (centerpiece): drop zone (drag&drop "Release to analyze", DICOM/DICOM ZIP/NIfTI badges, "de-identified" notice) → AiProcessingCore pipeline → file info + live validation/privacy checklist → verification + quality panels → MPR viewer + AI overlay gate → Researcher approval gate [Approve/Reject/Request Review] → animated feature extraction table (value/unit/confidence/status + researcher-editable override, audit-logged) → Run Research Prediction (flows to Prediction view). FAILED state with code + recovery.
+- AI Status Indicator (topbar): global "AI STATUS ● Demo mode" with pulsing dot; dropdown lists 4 model categories (Image Verification, Image Quality, Feature Extraction, Outcome Prediction), clearly states imaging models "not connected", results are "synthetic demonstrations".
+- Nav: added "CBCT AI Workspace" (centerpiece) + kept existing "CBCT Features"; mobile bottom nav promotes CBCT AI.
+
+Verification (Agent Browser, desktop + 390px mobile):
+- Fake JPG → rejected with "renamed 2D image" + INVALID_DICOM + Try Again/Upload different recovery.
+- Valid synthetic DICOM (2MB, DICM magic) → full pipeline: Upload→Validate→Verify→Quality→Review. Verification checklist (CBCT volume/coverage/quality/site/artifact), quality grade REVIEW, MPR viewer (Axial/Coronal/Sagittal), AI overlay shows "segmentation model not connected".
+- Approve → feature extraction table (Bone Density 91%, Bone Quality, etc., AI-generated status, researcher-editable) → Run Research Prediction → Prediction view.
+- AI status dropdown shows all 4 model categories + "not connected" + "synthetic demonstrations".
+- Mobile: drop zone + upload + pipeline + approval gate all work.
+- Backend: all /api/cbct/* routes return 200; lint clean; no console/runtime errors.
+
+Stage Summary:
+- App transformed into premium CBCT AI imaging research platform; CBCT AI Workspace is the visual centerpiece with the full Upload→Verify→Analyze→Extract→Predict workflow.
+- No fake AI: real magic-byte validation; clearly-labeled DEMO synthetic results; no invented medical variables/thresholds/confidence; no fake segmentation.
+- All existing modules preserved (Dashboard, Cases, CBCT Features, Clinical, Outcomes, Predictions, Model Performance, Feature Analysis, Dataset, Reports, Audit, Users, Settings, New Case wizard).

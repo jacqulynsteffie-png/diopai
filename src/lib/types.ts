@@ -195,6 +195,7 @@ export type ViewId =
   | "dashboard"
   | "cases"
   | "new-case"
+  | "cbct-workspace"
   | "cbct"
   | "clinical"
   | "outcomes"

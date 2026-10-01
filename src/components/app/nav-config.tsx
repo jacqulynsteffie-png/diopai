@@ -30,7 +30,8 @@ export const NAV: NavItem[] = [
   { id: "dashboard", label: "Dashboard", shortLabel: "Home", icon: LayoutDashboard, group: "Overview" },
 
   { id: "cases", label: "Research Cases", shortLabel: "Cases", icon: FolderSearch, group: "Research" },
-  { id: "cbct", label: "CBCT Features", shortLabel: "CBCT", icon: ScanLine, group: "Research" },
+  { id: "cbct-workspace", label: "CBCT AI Workspace", shortLabel: "CBCT AI", icon: ScanLine, group: "Research" },
+  { id: "cbct", label: "CBCT Features", shortLabel: "Features", icon: ScanLine, group: "Research" },
   { id: "clinical", label: "Clinical Data", shortLabel: "Clinical", icon: Stethoscope, group: "Research" },
   { id: "outcomes", label: "Outcomes", shortLabel: "Outcomes", icon: Target, group: "Research" },
 
@@ -50,8 +51,8 @@ export const NAV: NavItem[] = [
 export const MOBILE_PRIMARY_NAV: ViewId[] = [
   "dashboard",
   "cases",
+  "cbct-workspace",
   "prediction",
-  "dataset",
   "settings",
 ];
 

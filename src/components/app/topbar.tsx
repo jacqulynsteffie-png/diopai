@@ -7,6 +7,7 @@ import { useAppStore } from "@/lib/store";
 import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { LogoMark } from "./logo";
+import { AiStatusIndicator } from "./ai-status-indicator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +34,7 @@ const VIEW_TITLES: Record<string, { title: string; subtitle: string }> = {
     subtitle: "Retrospective de-identified case records and eligibility review.",
   },
   "new-case": { title: "New Research Case", subtitle: "Create a de-identified research case." },
+  "cbct-workspace": { title: "CBCT AI Workspace", subtitle: "Upload → Verify → Extract → Predict — the AI research pipeline." },
   cbct: { title: "CBCT Features", subtitle: "Preoperative CBCT-derived feature entry and review." },
   clinical: { title: "Clinical Data", subtitle: "Approved research clinical variables." },
   outcomes: { title: "Outcomes", subtitle: "Documented implant outcomes per research protocol." },
@@ -117,6 +119,9 @@ export function Topbar() {
           <TooltipContent>Search</TooltipContent>
         </Tooltip>
       </TooltipProvider>
+
+      {/* AI status indicator */}
+      <AiStatusIndicator />
 
       {/* New case quick */}
       <button
