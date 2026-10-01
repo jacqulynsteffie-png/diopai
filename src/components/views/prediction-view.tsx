@@ -200,24 +200,38 @@ export function PredictionView() {
                     <p className="mb-3 text-[11px] text-muted-foreground">
                       Feature contribution indicates how much the model relied on this variable. It does not establish causality. {result.shapAvailable ? "SHAP values shown where supported." : "SHAP not available."}
                     </p>
-                    <div className="space-y-2">
+                    {/* legend */}
+                    <div className="mb-3 flex items-center justify-end gap-4 text-[11px] text-muted-foreground">
+                      <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" /> Pushes toward Success</span>
+                      <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-red-400" /> Pushes toward Failure</span>
+                    </div>
+                    <div className="space-y-2.5">
                       {result.featureContributions.map((c, i) => {
                         const max = Math.max(...result.featureContributions.map((x) => Math.abs(x.contribution)), 0.01);
-                        const w = (Math.abs(c.contribution) / max) * 100;
+                        // each bar can occupy at most half the track (diverging from center)
+                        const halfPct = (Math.abs(c.contribution) / max) * 50;
                         const pos = c.contribution >= 0;
                         return (
-                          <div key={i} className="flex items-center gap-2">
-                            <span className="w-44 truncate text-xs text-foreground">{c.feature}</span>
-                            <div className="relative h-6 flex-1 rounded bg-muted">
+                          <div key={i} className="flex items-center gap-2 sm:gap-3">
+                            <span className="w-24 shrink-0 truncate text-[11px] text-foreground sm:w-44 sm:text-xs">{c.feature}</span>
+                            <div className="relative h-7 flex-1 overflow-hidden rounded bg-muted">
+                              {/* track halves */}
+                              <div className="absolute inset-y-0 left-0 w-1/2 border-r border-border/60 bg-muted-foreground/5" />
+                              <div className="absolute inset-y-0 right-0 w-1/2 bg-muted-foreground/5" />
+                              {/* diverging bar */}
                               <motion.div
                                 initial={{ width: 0 }}
-                                animate={{ width: `${w}%` }}
-                                transition={{ duration: 0.5, delay: i * 0.04 }}
-                                className={cn("absolute top-0 h-6 rounded", pos ? "left-1/2 bg-emerald-500" : "right-1/2 bg-red-400")}
+                                animate={{ width: `${halfPct}%` }}
+                                transition={{ duration: 0.55, delay: i * 0.05, ease: "easeOut" }}
+                                className={cn(
+                                  "absolute top-0 h-7 rounded",
+                                  pos ? "left-1/2 bg-gradient-to-r from-emerald-500 to-emerald-400" : "right-1/2 bg-gradient-to-l from-red-500 to-red-400"
+                                )}
                               />
-                              <div className="absolute left-1/2 top-0 h-6 w-px bg-border" />
+                              {/* center axis */}
+                              <div className="absolute left-1/2 top-0 z-10 h-7 w-px -translate-x-1/2 bg-foreground/30" />
                             </div>
-                            <span className={cn("w-12 text-right text-xs font-medium tabular-nums", pos ? "text-emerald-600" : "text-red-500")}>
+                            <span className={cn("w-12 shrink-0 text-right text-[11px] font-semibold tabular-nums sm:text-xs", pos ? "text-emerald-600" : "text-red-500")}>
                               {pos ? "+" : ""}{c.contribution.toFixed(3)}
                             </span>
                           </div>
@@ -232,16 +246,16 @@ export function PredictionView() {
                   <CardHeader><CardTitle className="flex items-center gap-2"><ArrowLeftRight className="h-4 w-4 text-primary" /> Prediction vs Documented Outcome</CardTitle><CardDescription>Research comparison</CardDescription></CardHeader>
                   <CardContent>
                     {actual ? (
-                      <div className="grid grid-cols-3 items-center gap-2">
+                      <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr] sm:gap-2">
                         <ComparisonSide label="AI Prediction" value={result.predictedOutcome} sub={`${probPct}% probability`} positive={result.predictedOutcome === "Success"} />
-                        <div className="flex flex-col items-center">
+                        <div className="flex flex-row items-center justify-center gap-2 sm:flex-col">
                           <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Agreement</span>
                           {agreement === "Yes" ? (
-                            <Badge className="mt-1 bg-emerald-100 text-emerald-700"><CheckCircle2 className="h-3 w-3" /> Yes</Badge>
+                            <Badge className="bg-emerald-100 text-emerald-700"><CheckCircle2 className="h-3 w-3" /> Yes</Badge>
                           ) : (
-                            <Badge className="mt-1 bg-red-100 text-red-600"><XCircle className="h-3 w-3" /> No</Badge>
+                            <Badge className="bg-red-100 text-red-600"><XCircle className="h-3 w-3" /> No</Badge>
                           )}
-                          <ChevronRight className="mt-1 h-4 w-4 text-muted-foreground" />
+                          <ChevronRight className="hidden h-4 w-4 rotate-90 text-muted-foreground sm:block sm:rotate-0" />
                         </div>
                         <ComparisonSide label="Documented Outcome" value={actual} sub={`Follow-up ${caseData.outcome?.followUpMonths ?? "—"} mo`} positive={actual === "Success"} />
                       </div>
@@ -359,40 +373,131 @@ function LoadingCard({ phase }: { phase: Phase }) {
   const active = labels[phase] ?? labels.prep;
   const order = ["prep", "processing", "generating"];
   const idx = order.indexOf(phase);
+
   return (
-    <Card>
-      <CardContent className="flex flex-col items-center gap-4 py-12">
-        <div className="relative h-20 w-20">
-          <motion.div
-            className="absolute inset-0 rounded-full border-4 border-primary/20"
+    <Card className="overflow-hidden">
+      <div className="relative bg-[#0B1220] px-6 py-10">
+        {/* grid + glow background */}
+        <div className="absolute inset-0 bg-grid-dark opacity-50" />
+        <div className="absolute inset-0 bg-radial-glow" />
+        {/* particles */}
+        {Array.from({ length: 14 }).map((_, i) => (
+          <motion.span
+            key={i}
+            className="absolute h-1 w-1 rounded-full bg-cyan-400/70"
+            style={{ left: `${(i * 37) % 100}%`, top: `${(i * 53) % 100}%` }}
+            animate={{ y: [0, -18, 0], opacity: [0.15, 0.9, 0.15] }}
+            transition={{ duration: 2.4 + (i % 4) * 0.5, repeat: Infinity, delay: i * 0.12 }}
           />
-          <motion.div
-            className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          />
-          <div className="absolute inset-0 grid place-items-center">
-            <Brain className="h-8 w-8 text-primary" />
-          </div>
-        </div>
-        <p className="text-sm font-medium text-foreground">{active}</p>
-        <p className="text-[11px] text-muted-foreground">Do not fake progress percentages — model inference in progress.</p>
-        <div className="flex w-full max-w-md flex-col gap-1.5">
-          {order.map((s, i) => (
-            <div key={s} className="flex items-center gap-2">
-              <div className="w-5">
-                {i < idx ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : i === idx ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <div className="h-2 w-2 rounded-full bg-muted-foreground/30" />}
+        ))}
+
+        <CardContent className="relative flex flex-col items-center gap-5 p-0 text-white">
+          {/* Impressive radar / neural core */}
+          <div className="relative grid h-44 w-44 place-items-center">
+            {/* outer scanning ring */}
+            <motion.div
+              className="absolute inset-0 rounded-full border-2 border-cyan-400/30"
+              animate={{ scale: [1, 1.25, 1], opacity: [0.6, 0, 0.6] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+            />
+            <motion.div
+              className="absolute inset-2 rounded-full border-2 border-blue-400/30"
+              animate={{ scale: [1, 1.18, 1], opacity: [0.7, 0, 0.7] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 0.4 }}
+            />
+            {/* rotating radar sweep */}
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: "conic-gradient(from 0deg, transparent 0deg, rgba(6,182,212,0.45) 90deg, transparent 130deg)",
+              }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
+            />
+            {/* dashed orbit */}
+            <motion.div
+              className="absolute inset-4 rounded-full border border-dashed border-cyan-300/30"
+              animate={{ rotate: -360 }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            />
+            {/* pulsing core */}
+            <motion.div
+              className="absolute inset-0 grid place-items-center"
+              animate={{ scale: [1, 1.08, 1] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <div className="relative grid h-20 w-20 place-items-center rounded-full bg-brand-gradient shadow-[0_0_40px_-4px_rgba(37,99,235,0.7)]">
+                {/* neural nodes around core */}
+                {[0, 90, 180, 270].map((deg, i) => (
+                  <motion.span
+                    key={deg}
+                    className="absolute h-2 w-2 rounded-full bg-white"
+                    style={{ transform: `rotate(${deg}deg) translateY(-44px)` }}
+                    animate={{ opacity: [0.4, 1, 0.4] }}
+                    transition={{ duration: 1, repeat: Infinity, delay: i * 0.25 }}
+                  />
+                ))}
+                <Brain className="h-9 w-9 text-white drop-shadow" />
               </div>
-              <span className={cn("text-xs", i <= idx ? "text-foreground" : "text-muted-foreground")}>{labels[s]}</span>
+            </motion.div>
+          </div>
+
+          {/* Status text */}
+          <div className="text-center">
+            <motion.p
+              key={active}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-base font-semibold text-white"
+            >
+              {active}
+            </motion.p>
+            <p className="mt-1 text-[11px] text-slate-400">
+              Analyzing preoperative CBCT-derived features · research-use inference
+            </p>
+          </div>
+
+          {/* Stage progress bar */}
+          <div className="w-full max-w-md">
+            <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+              <motion.div
+                className="absolute inset-y-0 left-0 rounded-full bg-brand-gradient"
+                animate={{ width: `${((idx + 1) / order.length) * 100}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              />
+              <motion.div
+                className="absolute inset-y-0 w-1/3 rounded-full bg-white/30 blur-sm"
+                animate={{ left: ["-33%", "100%"] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+              />
             </div>
-          ))}
-        </div>
-        <div className="w-full max-w-md space-y-2">
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-24 w-full rounded-xl" />
-        </div>
-      </CardContent>
+            <div className="mt-3 flex flex-col gap-2">
+              {order.map((s, i) => (
+                <div key={s} className="flex items-center gap-2.5">
+                  <div className="grid h-5 w-5 place-items-center">
+                    {i < idx ? (
+                      <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                      </motion.span>
+                    ) : i === idx ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-cyan-300" />
+                    ) : (
+                      <div className="h-1.5 w-1.5 rounded-full bg-slate-600" />
+                    )}
+                  </div>
+                  <span className={cn("text-xs", i < idx ? "text-slate-400 line-through" : i === idx ? "font-medium text-white" : "text-slate-500")}>
+                    {labels[s]}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-[10px] text-slate-500">
+            Do not fake progress percentages — model inference in progress.
+          </p>
+        </CardContent>
+      </div>
     </Card>
   );
 }

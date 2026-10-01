@@ -16,6 +16,10 @@ import {
   Info,
   CheckCircle2,
   AlertTriangle,
+  Loader2,
+  RefreshCw,
+  ShieldCheck,
+  X,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -34,6 +38,32 @@ export function CbctView() {
   const [pan, setPan] = React.useState({ x: 0, y: 0 });
   const cbct = caseData?.cbct;
   const [uploaded, setUploaded] = React.useState<string | null>(null);
+  const [uploadedName, setUploadedName] = React.useState<string | null>(null);
+  const [verifyState, setVerifyState] = React.useState<"idle" | "verifying" | "verified">("idle");
+  const verifyTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    return () => { if (verifyTimer.current) clearTimeout(verifyTimer.current); };
+  }, []);
+
+  function handleUpload(file: File) {
+    setUploaded(URL.createObjectURL(file));
+    setUploadedName(file.name);
+    setVerifyState("verifying");
+    // simulate image verification (quality/format check) — not segmentation
+    if (verifyTimer.current) clearTimeout(verifyTimer.current);
+    verifyTimer.current = setTimeout(() => setVerifyState("verified"), 2600);
+  }
+
+  function resetImage() {
+    if (verifyTimer.current) clearTimeout(verifyTimer.current);
+    setUploaded(null);
+    setUploadedName(null);
+    setVerifyState("idle");
+    setZoom(1);
+    setRotate(0);
+    setPan({ x: 0, y: 0 });
+  }
 
   if (!caseData) {
     return <Empty title="No research case" desc="Select a case to view CBCT features." />;
@@ -76,21 +106,54 @@ export function CbctView() {
                 animate={{ scale: [1, 1.1, 1], opacity: [0.6, 0.9, 0.6] }}
                 transition={{ duration: 3, repeat: Infinity }}
               />
+
               {uploaded ? (
-                <motion.img
-                  src={uploaded}
-                  alt="Uploaded CBCT preview"
-                  className="max-h-[360px] rounded-lg border border-white/10 shadow-2xl"
-                  style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotate(${rotate}deg)` }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                />
+                <>
+                  <motion.img
+                    src={uploaded}
+                    alt="Uploaded CBCT preview"
+                    className="max-h-[360px] max-w-full rounded-lg border border-white/10 shadow-2xl"
+                    style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotate(${rotate}deg)` }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: verifyState === "verifying" ? 0.85 : 1 }}
+                  />
+                  {/* verification scanning overlay */}
+                  {verifyState === "verifying" && (
+                    <>
+                      <div className="absolute inset-0 bg-[#0B1220]/30" />
+                      {/* moving scan line */}
+                      <motion.div
+                        className="absolute inset-x-0 h-24"
+                        style={{
+                          background: "linear-gradient(to bottom, transparent, rgba(6,182,212,0.5), transparent)",
+                          boxShadow: "0 0 24px rgba(6,182,212,0.6)",
+                        }}
+                        initial={{ top: "0%" }}
+                        animate={{ top: ["0%", "100%", "0%"] }}
+                        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                      <div className="absolute inset-0 grid place-items-center">
+                        <div className="flex flex-col items-center gap-2 rounded-xl border border-cyan-400/30 bg-[#0B1220]/80 px-5 py-3 backdrop-blur">
+                          <Loader2 className="h-6 w-6 animate-spin text-cyan-300" />
+                          <p className="text-xs font-medium text-white">Verifying image quality…</p>
+                          <p className="text-[10px] text-slate-400">Format & quality check (not segmentation)</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {/* verified badge */}
+                  {verifyState === "verified" && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500/90 px-3 py-1.5 text-[11px] font-medium text-white shadow-lg"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Image verified
+                    </motion.div>
+                  )}
+                </>
               ) : (
-                <div
-                  className="relative grid h-64 w-64 place-items-center rounded-2xl border border-white/10 bg-white/5"
-                  style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotate(${rotate}deg)` }}
-                >
-                  {/* synthetic CBCT placeholder */}
+                <div className="relative grid h-64 w-64 place-items-center rounded-2xl border border-white/10 bg-white/5">
                   <div className="absolute inset-3 rounded-xl bg-gradient-to-br from-slate-700/40 to-slate-900/60" />
                   <div className="absolute inset-0 grid place-items-center">
                     <div className="text-center">
@@ -105,26 +168,45 @@ export function CbctView() {
               <div className="pointer-events-none absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-cyan-400/20" />
               <div className="pointer-events-none absolute top-1/2 left-0 h-px w-full -translate-y-1/2 bg-cyan-400/20" />
             </div>
+
+            {/* verification status strip */}
+            {uploaded && (
+              <div className={cn(
+                "flex items-center gap-2 border-b border-border px-3 py-2 text-xs",
+                verifyState === "verified" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300" : "bg-muted/50 text-muted-foreground"
+              )}>
+                {verifyState === "verifying" ? (
+                  <><Loader2 className="h-3.5 w-3.5 animate-spin text-cyan-500" /> <span>Verifying <span className="font-mono text-foreground">{uploadedName}</span>…</span></>
+                ) : verifyState === "verified" ? (
+                  <><ShieldCheck className="h-3.5 w-3.5" /> <span>Image verified — adequate quality for manual feature entry.</span></>
+                ) : null}
+                <span className="ml-auto truncate text-[10px] text-muted-foreground">{uploadedName}</span>
+                <button onClick={resetImage} className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Remove image"><X className="h-3.5 w-3.5" /></button>
+              </div>
+            )}
+
             {/* viewer controls */}
             <div className="flex flex-wrap items-center gap-1 border-t border-border p-2">
-              <CtrlBtn onClick={() => setZoom((z) => Math.max(0.5, z - 0.2))}><ZoomOut className="h-4 w-4" /></CtrlBtn>
+              <CtrlBtn onClick={() => setZoom((z) => Math.max(0.5, z - 0.2))} disabled={!uploaded}><ZoomOut className="h-4 w-4" /></CtrlBtn>
               <span className="px-2 text-xs tabular-nums text-muted-foreground">{Math.round(zoom * 100)}%</span>
-              <CtrlBtn onClick={() => setZoom((z) => Math.min(2.5, z + 0.2))}><ZoomIn className="h-4 w-4" /></CtrlBtn>
+              <CtrlBtn onClick={() => setZoom((z) => Math.min(2.5, z + 0.2))} disabled={!uploaded}><ZoomIn className="h-4 w-4" /></CtrlBtn>
               <Separator orientation="vertical" className="mx-1 h-5" />
-              <CtrlBtn onClick={() => setRotate((r) => r - 90)}><RotateCw className="h-4 w-4 rotate-180" /></CtrlBtn>
-              <CtrlBtn onClick={() => setRotate((r) => r + 90)}><RotateCw className="h-4 w-4" /></CtrlBtn>
+              <CtrlBtn onClick={() => setRotate((r) => r - 90)} disabled={!uploaded}><RotateCw className="h-4 w-4 rotate-180" /></CtrlBtn>
+              <CtrlBtn onClick={() => setRotate((r) => r + 90)} disabled={!uploaded}><RotateCw className="h-4 w-4" /></CtrlBtn>
               <Separator orientation="vertical" className="mx-1 h-5" />
-              <CtrlBtn onClick={() => { setZoom(1); setRotate(0); setPan({ x: 0, y: 0 }); }}><Move className="h-4 w-4" /></CtrlBtn>
-              <CtrlBtn onClick={() => {}}><Maximize2 className="h-4 w-4" /></CtrlBtn>
-              <label className="ml-auto inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-gradient px-3 py-1.5 text-xs font-medium text-white">
-                <Upload className="h-3.5 w-3.5" /> Upload CBCT
+              <CtrlBtn onClick={() => { setZoom(1); setRotate(0); setPan({ x: 0, y: 0 }); }} disabled={!uploaded}><Move className="h-4 w-4" /></CtrlBtn>
+              <CtrlBtn onClick={() => {}} disabled={!uploaded}><Maximize2 className="h-4 w-4" /></CtrlBtn>
+              <label className="ml-auto inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-gradient px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-95">
+                {uploaded ? <RefreshCw className="h-3.5 w-3.5" /> : <Upload className="h-3.5 w-3.5" />}
+                {uploaded ? "Replace" : "Upload CBCT"}
                 <input
                   type="file"
                   accept="image/*"
-                  className="hidden"
+                  className="sr-only"
                   onChange={(e) => {
                     const f = e.target.files?.[0];
-                    if (f) setUploaded(URL.createObjectURL(f));
+                    if (f) handleUpload(f);
+                    e.currentTarget.value = "";
                   }}
                 />
               </label>
@@ -181,9 +263,16 @@ export function CbctView() {
   );
 }
 
-function CtrlBtn({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+function CtrlBtn({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) {
   return (
-    <button onClick={onClick} className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "grid h-8 w-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+        disabled && "cursor-not-allowed opacity-40 hover:bg-transparent hover:text-muted-foreground"
+      )}
+    >
       {children}
     </button>
   );

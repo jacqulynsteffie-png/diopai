@@ -226,15 +226,16 @@ export function DashboardView() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06 }}
+              className="h-full"
             >
-              <Card className="group relative overflow-hidden border-border bg-card transition-shadow hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-black/30">
+              <Card className="group relative h-full overflow-hidden border-border bg-card transition-shadow hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-black/30">
                 <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", s.accent)} />
                 <CardContent className="pt-5">
-                  <div className="flex items-start justify-between">
-                    <div className={cn("grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br text-white", s.accent)}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white", s.accent)}>
                       <s.icon className="h-5 w-5" />
                     </div>
-                    <span className={cn("inline-flex items-center gap-1 text-[11px] font-medium", s.up ? "text-emerald-600" : "text-red-500")}>
+                    <span className={cn("inline-flex shrink-0 items-center gap-1 text-[11px] font-medium whitespace-nowrap", s.up ? "text-emerald-600" : "text-red-500")}>
                       {s.up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                       {s.trend}
                     </span>
@@ -242,7 +243,7 @@ export function DashboardView() {
                   <p className="mt-4 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                     {s.label}
                   </p>
-                  <div className="mt-0.5 text-2xl font-semibold tracking-tight text-foreground">
+                  <div className={cn("mt-0.5 font-semibold tracking-tight text-foreground", s.isText ? "truncate text-lg" : "text-2xl tabular-nums")}>
                     {s.isText ? s.value : <Counter value={s.value as number} />}
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">{s.desc}</p>

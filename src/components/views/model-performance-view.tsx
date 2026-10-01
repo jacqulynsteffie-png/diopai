@@ -48,8 +48,8 @@ export function ModelPerformanceView() {
       {/* Performance cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {metricCards.map((m, i) => (
-          <motion.div key={m.l} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <Card className="relative overflow-hidden">
+          <motion.div key={m.l} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="h-full">
+            <Card className="relative h-full overflow-hidden">
               <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", m.color)} />
               <CardContent className="p-4">
                 <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{m.l}</p>

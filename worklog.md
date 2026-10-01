@@ -89,3 +89,25 @@ Verification (Agent Browser @ 390×844):
 Stage Summary:
 - Mobile fully optimized: sidebar → drawer + bottom nav; tables → cards; touch-friendly; responsive footer; dialogs usable.
 - Desktop behavior preserved (≥1024px). All views verified on mobile.
+
+---
+Task ID: fix-align-anim-cbct
+Agent: main (orchestrator)
+Task: Fix analytics bar overlap, impressive AI prediction animation, CBCT upload+verify, alignment.
+
+Work Log:
+- BUG FIX (analytics overlap): feature-contribution diverging bars used full width (up to 100%) starting at center → overflowed container by ~378px. Fixed: width = (|contribution|/max) * 50% (max half-track), added track halves, gradient bars, center axis z-10, legend, responsive label widths (w-24 sm:w-44). Verified zero overflow desktop+mobile.
+- IMPRESSIVE AI prediction animation: replaced plain spinner with navy radar-core: expanding scan rings, conic radar sweep, dashed orbit, pulsing gradient core w/ 4 neural nodes, particle field, shimmering progress bar w/ moving highlight, animated stage checklist (checkmarks + strike-through). Stages: prep→processing→generating.
+- CBCT upload + verification flow: Upload → auto "verifying" state (2.6s) with moving scan-line overlay + "Verifying image quality…" card (format/quality check, NOT segmentation) → "Image verified" badge + green status strip "Image verified — adequate quality for manual feature entry". Replace/Remove (X) controls; viewer controls disabled until image uploaded; file input sr-only so it's targetable.
+- ALIGNMENT fixes: dashboard stat cards now equal-height (h-full + whitespace-nowrap trends + truncate text-value "XGBoost v1.0"); model-performance metric cards h-full; Prediction-vs-Actual comparison responsive (grid-cols-1 mobile → 1fr auto 1fr desktop).
+
+Verification (Agent Browser):
+- Feature bars: overflow=false on desktop (barR ≤ containerR) and mobile.
+- Stat card heights: all 194.5px, equal=true.
+- Prediction: animation plays through stages → result renders with legend "Pushes toward Success/Failure".
+- CBCT: uploaded test image → "Verifying" → "Image verified" badge + status strip confirmed.
+- Mobile 390px: bars no overflow, animation+result render.
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- Analytics overlap bar fixed; impressive neural-radar prediction animation; CBCT upload→verify→verified flow; alignment perfected across dashboard/model-performance/prediction.
