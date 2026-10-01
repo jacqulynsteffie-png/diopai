@@ -1,0 +1,166 @@
+// ImplantAI Research — Prisma schema
+// Retrospective dental implant outcome research platform.
+// All data is de-identified. SQLite client.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      String   @default("Researcher") // Admin | Researcher
+  status    String   @default("Active") // Active | Suspended
+  lastLogin DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cases     ResearchCase[]
+  auditLogs AuditLog[]
+}
+model ResearchCase {
+  id           String   @id @default(cuid())
+  caseId       String   @unique // de-identified
+  age          Int
+  sex          String
+  implantSite  String
+  toothPosition String?
+  cbctAvailable Boolean @default(true)
+  cbctQuality  String   @default("Adequate")
+  eligibility  String   @default("Requires Review") // Eligible | Requires Review | Excluded
+  status       String   @default("Active") // Draft | Active | Archived
+  createdBy    String
+  createdById  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  cbct       CbctFeature?
+  clinical   ClinicalFeature?
+  outcome    Outcome?
+  prediction Prediction?
+
+  user     User?        @relation(fields: [createdById], references: [id])
+
+  @@index([caseId])
+  @@index([eligibility])
+}
+
+model CbctFeature {
+  id                 String  @id @default(cuid())
+  caseIdRef          String  @unique
+  case               ResearchCase @relation(fields: [caseIdRef], references: [id], onDelete: Cascade)
+  imageQualityScore  Int?
+  boneDensityHu      Int?
+  boneQuality        String? // Type I..IV
+  buccolingualWidth  Float?
+  apicocoronalHeight Float?
+  corticalBoneThickness Float?
+  sinusFloorToCrest  Float?
+  distanceToIA       Float?
+  buccalPlateThickness Float?
+  interradicularBone Float?
+  source             String  @default("Manual entry")
+  assessmentStatus   String  @default("Pending")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model ClinicalFeature {
+  id                  String  @id @default(cuid())
+  caseIdRef           String  @unique
+  case                ResearchCase @relation(fields: [caseIdRef], references: [id], onDelete: Cascade)
+  smokingStatus       String?
+  diabetesStatus      String?
+  bruxism             Boolean?
+  implantSystem       String?
+  implantDiameterMm    Float?
+  implantLengthMm     Float?
+  loadingProtocol     String?
+  prostheticType      String?
+  augmentationPerformed Boolean?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Outcome {
+  id                String   @id @default(cuid())
+  caseIdRef         String   @unique
+  case              ResearchCase @relation(fields: [caseIdRef], references: [id], onDelete: Cascade)
+  documentedOutcome String? // Success | Failure
+  followUpMonths    Int?
+  assessmentDate    DateTime?
+  classificationSource String @default("Research protocol definition (configurable)")
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Prediction {
+  id                String   @id @default(cuid())
+  caseIdRef         String   @unique
+  case              ResearchCase @relation(fields: [caseIdRef], references: [id], onDelete: Cascade)
+  modelId           String
+  modelVersion      String
+  algorithm         String
+  predictedOutcome  String
+  probability       Float
+  shapAvailable     Boolean  @default(false)
+  status            String   @default("Completed")
+  generatedAt       DateTime @default(now())
+  featureContributions String? // JSON string
+
+  @@index([modelId])
+}
+
+model ModelVersion {
+  id                  String   @id @default(cuid())
+  modelId             String   @unique
+  version             String
+  algorithm           String
+  status              String   @default("Development") // Validated | Development | Not Available
+  trainingDatasetVersion String
+  featureList         String   // JSON string
+  trainedAt           DateTime?
+  validationStrategy  String
+  rocAuc              Float?
+  metrics             String? // JSON string
+  fileLocation        String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model DatasetRecord {
+  id           String   @id @default(cuid())
+  name         String
+  records      Int
+  eligible     Int
+  excluded     Int
+  missingValues Int
+  duplicates   Int
+  invalidValues Int
+  qualityScore Int
+  status       String   @default("Validated")
+  importedAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+  userId    String?
+  user      String
+  action    String
+  module    String
+  caseId    String? // plain reference to ResearchCase.caseId (no FK to keep schema simple)
+  status    String   @default("Success") // Success | Warning | Error
+  detail    String?
+  userRef   User?    @relation(fields: [userId], references: [id])
+
+  @@index([timestamp])
+  @@index([module])
+}

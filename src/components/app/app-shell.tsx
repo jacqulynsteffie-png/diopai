@@ -1,0 +1,87 @@
+"use client";
+
+import * as React from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useAppStore } from "@/lib/store";
+import { Sidebar } from "./sidebar";
+import { Topbar } from "./topbar";
+import { DemoBanner } from "./demo-banner";
+import { CommandPalette } from "./command-palette";
+import { LoginView } from "@/components/views/login-view";
+import { DashboardView } from "@/components/views/dashboard-view";
+import { CasesView } from "@/components/views/cases-view";
+import { NewCaseWizard } from "@/components/views/new-case-wizard";
+import { CbctView } from "@/components/views/cbct-view";
+import { ClinicalView } from "@/components/views/clinical-view";
+import { OutcomesView } from "@/components/views/outcomes-view";
+import { PredictionView } from "@/components/views/prediction-view";
+import { ModelPerformanceView } from "@/components/views/model-performance-view";
+import { FeatureAnalysisView } from "@/components/views/feature-analysis-view";
+import { DatasetView } from "@/components/views/dataset-view";
+import { ReportsView } from "@/components/views/reports-view";
+import { AuditView } from "@/components/views/audit-view";
+import { UsersView } from "@/components/views/users-view";
+import { SettingsView } from "@/components/views/settings-view";
+
+const VIEW_COMPONENTS: Record<string, React.ComponentType> = {
+  dashboard: DashboardView,
+  cases: CasesView,
+  cbct: CbctView,
+  clinical: ClinicalView,
+  outcomes: OutcomesView,
+  prediction: PredictionView,
+  "model-performance": ModelPerformanceView,
+  "feature-analysis": FeatureAnalysisView,
+  dataset: DatasetView,
+  reports: ReportsView,
+  audit: AuditView,
+  users: UsersView,
+  settings: SettingsView,
+};
+
+export function AppShell() {
+  const { authenticated, view } = useAppStore();
+
+  if (!authenticated) return <LoginView />;
+
+  const ViewComponent = VIEW_COMPONENTS[view] ?? DashboardView;
+
+  return (
+    <div className="flex min-h-screen bg-background">
+      <Sidebar />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <DemoBanner />
+        <Topbar />
+        <main className="flex-1 overflow-x-hidden scrollbar-medical">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={view}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+              className="mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8"
+            >
+              <ViewComponent />
+            </motion.div>
+          </AnimatePresence>
+        </main>
+        <footer className="mt-auto border-t border-border/70 bg-card/40 px-6 py-4">
+          <div className="mx-auto flex max-w-[1500px] flex-col items-center justify-between gap-2 text-[11px] text-muted-foreground sm:flex-row">
+            <p>
+              ImplantAI Research · Retrospective study ·{" "}
+              <span className="text-amber-600 dark:text-amber-400">
+                DEMO MODE — Synthetic research data
+              </span>
+            </p>
+            <p>
+              Research-use only. Not a clinical diagnostic device. v1.0
+            </p>
+          </div>
+        </footer>
+      </div>
+      <CommandPalette />
+      <NewCaseWizard />
+    </div>
+  );
+}

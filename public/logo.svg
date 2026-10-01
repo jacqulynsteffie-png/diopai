@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="ia-grad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="46" height="46" rx="13" fill="#0B1220"/>
+  <rect x="1.5" y="1.5" width="45" height="45" rx="12.5" stroke="url(#ia-grad)" stroke-opacity="0.5"/>
+  <path d="M24 9c-3.2 0-5 2.4-5 5.4 0 1.5.5 2.7 1.2 4.2L24 26l3.8-7.4c.7-1.5 1.2-2.7 1.2-4.2C29 11.4 27.2 9 24 9Z" fill="url(#ia-grad)"/>
+  <path d="M24 26l-2.1 12.1c-.2 1.1.6 2.1 1.7 2.1h.8c1.1 0 1.9-1 1.7-2.1L24 26Z" fill="#06B6D4"/>
+  <circle cx="13" cy="30" r="2.2" fill="#2563EB"/>
+  <circle cx="35" cy="30" r="2.2" fill="#06B6D4"/>
+  <circle cx="13" cy="38" r="1.8" fill="#0F766E"/>
+  <circle cx="35" cy="38" r="1.8" fill="#0F766E"/>
+  <path d="M24 30.5L13 30M24 30.5L35 30M24 38.2L13 38M24 38.2L35 38M13 30v8M35 30v8M24 30.5v7.7" stroke="url(#ia-grad)" stroke-opacity="0.55" stroke-width="1.1" stroke-linecap="round"/>
+</svg>
