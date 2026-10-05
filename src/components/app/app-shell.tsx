@@ -55,7 +55,7 @@ export function AppShell() {
       <div className="flex min-w-0 flex-1 flex-col">
         <DemoBanner />
         <Topbar />
-        <main className="flex-1 overflow-x-hidden scrollbar-medical">
+        <main className="flex-1 overflow-x-clip">
           <AnimatePresence mode="wait">
             <motion.div
               key={view}

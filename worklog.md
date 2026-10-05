@@ -143,3 +143,29 @@ Stage Summary:
 - App transformed into premium CBCT AI imaging research platform; CBCT AI Workspace is the visual centerpiece with the full Upload→Verify→Analyze→Extract→Predict workflow.
 - No fake AI: real magic-byte validation; clearly-labeled DEMO synthetic results; no invented medical variables/thresholds/confidence; no fake segmentation.
 - All existing modules preserved (Dashboard, Cases, CBCT Features, Clinical, Outcomes, Predictions, Model Performance, Feature Analysis, Dataset, Reports, Audit, Users, Settings, New Case wizard).
+
+---
+Task ID: fix-scroll + restore-upload-route
+Agent: main (orchestrator)
+Task: Fix "not scrollable" issue on CBCT workspace; restore lost upload route.
+
+Work Log:
+- ROOT CAUSE (scroll): <main> had `overflow-x-hidden` → CSS spec makes overflow-y compute to `auto` → main became a vertical scroll container with bounded height (constrained by sidebar h-screen + flex column) → scroll trapped inside main, body didn't scroll, content clipped/inaccessible.
+- FIX: main → `overflow-x-clip` (clips horizontal overflow WITHOUT creating a vertical scroll container; overflow-y stays `visible` → body scrolls naturally). Removed scrollbar-medical from main. Verified mainOverflowY now "visible".
+- FIX: sidebar → `sticky top-0 self-start h-screen` (stays pinned during body scroll; self-start prevents flex-stretch).
+- RESTORE: /api/cbct/upload/route.ts + upload dir were missing (lost) → recreated with real magic-byte probing + `runtime="nodejs"`.
+- Restarted dev server cleanly (cleared .next) to fix stale route manifest 404.
+
+Verification (Agent Browser):
+- Upload route: 200 (valid DICOM accepted → structured file info; fake JPG → 422 "renamed 2D image").
+- validate/verify/quality routes all 200.
+- Verified phase (desktop): bodyScrollH 1596 > innerH 900, canScroll=true; main overflowY=visible.
+- Scrolled to bottom: approval gate + MPR viewer (Axial/Coronal/Sagittal) reachable; footer visible.
+- Feature-extraction phase: bodyScrollH 1283 > 900, canScroll=true; Run Prediction + Bone Density visible.
+- Mid-scroll: sidebar top≈0 (pinned), topbar top=0 (sticky).
+- Mobile 390×844: verified phase bodyScrollH 2914 > 844, canScroll=true; Run Prediction button clears fixed bottom nav (656≤780).
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- Scroll fully fixed: page scrolls naturally (body scroll) on desktop + mobile; sidebar pinned; topbar sticky; footer/bottom-nav clear content.
+- CBCT AI Workspace full pipeline (Upload→Validate→Verify→Quality→Viewer→Approve→Extract→Predict) verified scrollable end-to-end.

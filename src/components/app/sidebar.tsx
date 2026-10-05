@@ -25,7 +25,7 @@ export function Sidebar() {
       <motion.aside
         animate={{ width: collapsed ? 76 : 264 }}
         transition={{ type: "spring", stiffness: 320, damping: 32 }}
-        className="relative z-30 hidden h-screen flex-col border-r border-white/5 bg-[#0B1220] text-slate-200 shrink-0 lg:flex"
+        className="relative z-30 sticky top-0 hidden h-screen flex-col border-r border-white/5 bg-[#0B1220] text-slate-200 self-start shrink-0 lg:flex"
       >
         {/* Header */}
         <div className="flex h-16 items-center px-4 border-b border-white/5">
