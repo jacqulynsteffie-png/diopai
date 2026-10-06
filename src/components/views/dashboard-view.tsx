@@ -187,10 +187,14 @@ export function DashboardView() {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 sm:p-7"
+        className="card-medical relative overflow-hidden rounded-2xl border border-border p-6 sm:p-8"
       >
-        <div className="absolute inset-0 bg-grid opacity-30" />
-        <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-brand-gradient opacity-20 blur-3xl" />
+        <div className="absolute inset-0 bg-grid opacity-20" />
+        <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-gradient opacity-20 blur-3xl" />
+        <div className="absolute right-6 top-6 hidden items-center gap-1.5 sm:flex">
+          <span className="pulse-dot h-2 w-2 bg-cyan-500" />
+          <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Research pipeline active</span>
+        </div>
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="max-w-2xl">
             <Badge className="mb-3 border-primary/20 bg-brand-gradient-soft text-primary">
@@ -228,7 +232,7 @@ export function DashboardView() {
               transition={{ delay: i * 0.06 }}
               className="h-full"
             >
-              <Card className="group relative h-full overflow-hidden border-border bg-card transition-shadow hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-black/30">
+              <Card className="card-medical group relative h-full overflow-hidden border-border transition-shadow hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-black/30">
                 <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", s.accent)} />
                 <CardContent className="pt-5">
                   <div className="flex items-start justify-between gap-2">

@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Activity, GitCompare, Cpu, Info } from "lucide-react";
+import { Activity, GitCompare, Cpu, Info, Layers } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { ModelTrainWizard } from "./model-train-wizard";
 import { cn } from "@/lib/utils";
 import {
   ResponsiveContainer,
@@ -59,6 +60,49 @@ export function ModelPerformanceView() {
           </motion.div>
         ))}
       </div>
+
+      {/* Model Registry */}
+      <Card>
+        <CardHeader className="flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2"><Layers className="h-4 w-4 text-primary" /> Model Registry</CardTitle>
+            <CardDescription>Registered research models — add new or train</CardDescription>
+          </div>
+          <ModelTrainWizard />
+        </CardHeader>
+        <CardContent className="px-0">
+          <div className="overflow-x-auto scrollbar-medical">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-muted-foreground">
+                  <th className="px-6 py-2.5 font-medium">Algorithm</th>
+                  <th className="px-3 py-2.5 font-medium">Version</th>
+                  <th className="px-3 py-2.5 font-medium">Status</th>
+                  <th className="px-3 py-2.5 font-medium">Features</th>
+                  <th className="px-3 py-2.5 font-medium">ROC-AUC</th>
+                  <th className="px-6 py-2.5 font-medium text-right">Trained</th>
+                </tr>
+              </thead>
+              <tbody>
+                {models.map((m) => (
+                  <tr key={m.id} className={cn("border-b border-border/60 hover:bg-muted/40", m.algorithm === "XGBoost" && m.version === "1.0" && "bg-brand-gradient-soft")}>
+                    <td className="px-6 py-3 font-medium text-foreground flex items-center gap-1.5">
+                      {m.algorithm === "XGBoost" && m.version === "1.0" && <Cpu className="h-3.5 w-3.5 text-primary" />}
+                      {m.algorithm}
+                      {m.algorithm === "XGBoost" && m.version === "1.0" && <Badge className="ml-1 bg-primary/10 text-primary text-[9px]">Current</Badge>}
+                    </td>
+                    <td className="px-3 py-3 text-muted-foreground">{m.version}</td>
+                    <td className="px-3 py-3"><Badge variant="outline" className="text-[10px]">{m.status}</Badge></td>
+                    <td className="px-3 py-3 text-xs text-muted-foreground">{m.featureList.length}</td>
+                    <td className="px-3 py-3 tabular-nums font-semibold text-primary">{m.rocAuc?.toFixed(2) ?? "—"}</td>
+                    <td className="px-6 py-3 text-right text-xs text-muted-foreground">{m.trainedAt?.slice(0, 10) ?? "Not trained"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="overview">
         <TabsList className="flex w-full flex-wrap justify-start gap-1 h-auto bg-muted/60 p-1">

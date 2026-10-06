@@ -169,3 +169,36 @@ Verification (Agent Browser):
 Stage Summary:
 - Scroll fully fixed: page scrolls naturally (body scroll) on desktop + mobile; sidebar pinned; topbar sticky; footer/bottom-nav clear content.
 - CBCT AI Workspace full pipeline (Upload→Validate→Verify→Quality→Viewer→Approve→Extract→Predict) verified scrollable end-to-end.
+
+---
+Task ID: reports-models-ui-upgrade
+Agent: main (orchestrator)
+Task: Real report downloads + model add/train + attractive medical UI.
+
+Work Log:
+- REPORT DOWNLOADS (real files, was broken — buttons only toasts before):
+  • lib/report-export.ts — client-side generators: CSV (Blob, BOM-prefixed), Excel (SpreadsheetML 2003 XML .xls, opens natively in Excel), PDF (jsPDF + jspdf-autotable, installed).
+  • Reports view: "Generate" dialog → CSV/Excel/PDF each produce a real downloaded file; existing-row download button re-downloads the same format. Toast "Report downloaded…saved to your device."
+  • PDF: branded header band (ImplantAI Research), report title, dataset meta, auto-table, disclaimer + DEMO footer.
+- MODEL ADD / TRAIN (new):
+  • store: addModel(m) → prepends to models registry + audit log.
+  • model-train-wizard.tsx — two modes: "Add Model" (quick register: algorithm/version/dataset/features/validation/status → register untrained) and "Train Model" (config → AiProcessingCore animated 8-stage pipeline: Loading→Validation→Preprocessing→Feature engineering→5-fold CV→Training→Test eval→Serialization → synthetic metrics results [accuracy/sensitivity/specificity/precision/f1/rocAuc + confusion matrix TP/FP/FN/TN] → "Register Trained Model").
+  • model-performance-view: added "Model Registry" card with Add/Train buttons + full models table (algorithm/version/status/features/ROC-AUC/trained). Existing metric cards + tabs preserved.
+- ATTRACTIVE MEDICAL UI/UX:
+  • globals.css: refined body background (subtle fixed medical radial glows, light+dark), ::selection accent.
+  • Premium utilities: .card-medical (gradient border via mask-composite + enhanced shadow + hover lift), .accent-bar, .chip-medical, .pulse-dot (animated ring).
+  • Dashboard hero: card-medical + grid + gradient glow + "Research pipeline active" pulse-dot indicator.
+  • Stat cards: card-medical treatment.
+  • Sidebar: active nav indicator → pulse-dot (animated).
+
+Verification (Agent Browser):
+- Reports: CSV download → toast "Report downloaded"; PDF (jsPDF) → "Report downloaded" no console errors; Excel → "Report downloaded".
+- Add Model → "added to the registry"; Train Model → 8-stage animation → "Training complete" with 6 metrics (Acc 80.1%/Sens 77.1%/Spec 82.1%/Prec 75.1%/F1 76.1%/ROC-AUC 81.1%) + CM → Register → "Model trained & registered", XGBoost v1.1 ROC-AUC 0.81 appears in registry; "Not trained" model also listed.
+- UI: .pulse-dot + .card-medical present; hero renders. Mobile 390×844 canScroll=true (4579>844).
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- Report downloads now produce real CSV/Excel/PDF files.
+- Model registry: add untrained models or run animated training → register trained models w/ metrics (DEMO-labeled).
+- Premium medical UI: refined backgrounds, gradient-border cards, pulse indicators, polished hero.
+- All existing modules + scroll behavior preserved.

@@ -61,7 +61,7 @@ export function Sidebar() {
                       <Icon className={cn("h-[18px] w-[18px] shrink-0", active && "drop-shadow")} />
                       {!collapsed && <span className="truncate">{item.label}</span>}
                       {active && !collapsed && (
-                        <span className="ml-auto h-1.5 w-1.5 rounded-full bg-white/90" />
+                        <span className="pulse-dot ml-auto h-1.5 w-1.5 bg-cyan-300" />
                       )}
                     </button>
                   );

@@ -54,6 +54,7 @@ interface AppState {
   addCase: (c: ResearchCase) => void;
   updateCase: (id: string, patch: Partial<ResearchCase>) => void;
   models: ModelVersion[];
+  addModel: (m: ModelVersion) => void;
   datasets: DatasetRecord[];
   addDataset: (d: DatasetRecord) => void;
   auditLogs: AuditLog[];
@@ -100,6 +101,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     })),
 
   models: generateDemoModels(),
+  addModel: (m) => set((s) => ({ models: [m, ...s.models] })),
   datasets: generateDemoDatasets(),
   addDataset: (d) => set((s) => ({ datasets: [d, ...s.datasets] })),
   auditLogs: generateDemoAuditLogs(40),

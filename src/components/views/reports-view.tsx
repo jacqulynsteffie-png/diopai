@@ -30,7 +30,8 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { STUDY_META } from "@/lib/types";
+import { STUDY_META, type ReportRecord } from "@/lib/types";
+import { downloadCSV, downloadExcel, downloadPDF } from "@/lib/report-export";
 
 const REPORT_TYPES = [
   { type: "Study Dataset Summary", icon: Database, desc: "Records, eligibility, completeness" },
@@ -42,23 +43,28 @@ const REPORT_TYPES = [
 ];
 
 export function ReportsView() {
-  const { reports, addReport, addAuditLog, currentUser } = useAppStore();
+  const { reports, addReport, addAuditLog, currentUser, cases } = useAppStore();
   const { toast } = useToast();
   const [genOpen, setGenOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<typeof REPORT_TYPES[number] | null>(null);
   const [generating, setGenerating] = React.useState(false);
 
-  function generate(format: "PDF" | "Excel" | "CSV") {
+  async function generate(format: "PDF" | "Excel" | "CSV") {
     if (!selected) return;
     setGenerating(true);
-    setTimeout(() => {
+    try {
+      // generate the real file
+      if (format === "CSV") downloadCSV(selected.type, cases);
+      else if (format === "Excel") downloadExcel(selected.type, cases);
+      else await downloadPDF(selected.type, cases);
+
       addReport({
         id: `r_${Date.now()}`,
         type: selected.type,
         generatedBy: currentUser.name,
         generatedAt: new Date().toISOString(),
         format,
-        records: selected.type.includes("Model") ? 3 : 128,
+        records: selected.type.includes("Model") ? 3 : cases.length,
         status: "Ready",
       });
       addAuditLog({
@@ -70,10 +76,24 @@ export function ReportsView() {
         status: "Success",
         detail: `${selected.type} (${format})`,
       });
+      toast({ title: "Report downloaded", description: `${selected.type} (${format}) saved to your device.` });
+    } catch (e) {
+      toast({ title: "Download failed", description: "Could not generate the report file." });
+    } finally {
       setGenerating(false);
       setGenOpen(false);
-      toast({ title: "Report generated", description: `${selected.type} (${format}) is ready.` });
-    }, 1200);
+    }
+  }
+
+  async function downloadExisting(r: ReportRecord) {
+    try {
+      if (r.format === "CSV") downloadCSV(r.type, cases);
+      else if (r.format === "Excel") downloadExcel(r.type, cases);
+      else await downloadPDF(r.type, cases);
+      toast({ title: "Downloaded", description: `${r.type} (${r.format})` });
+    } catch {
+      toast({ title: "Download failed", description: r.type });
+    }
   }
 
   return (
@@ -137,7 +157,7 @@ export function ReportsView() {
                     <td className="px-3 py-3 text-xs text-muted-foreground">{r.generatedAt.slice(0, 10)}</td>
                     <td className="px-6 py-3">
                       <div className="flex justify-end gap-1">
-                        <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-primary/10 hover:text-primary" title="Download" onClick={() => toast({ title: "Download started", description: r.type })}><Download className="h-3.5 w-3.5" /></button>
+                        <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-primary/10 hover:text-primary" title="Download" onClick={() => downloadExisting(r)}><Download className="h-3.5 w-3.5" /></button>
                       </div>
                     </td>
                   </tr>
