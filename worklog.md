@@ -202,3 +202,28 @@ Stage Summary:
 - Model registry: add untrained models or run animated training → register trained models w/ metrics (DEMO-labeled).
 - Premium medical UI: refined backgrounds, gradient-border cards, pulse indicators, polished hero.
 - All existing modules + scroll behavior preserved.
+
+---
+Task ID: add-user-feature
+Agent: main (orchestrator)
+Task: Enable adding users (Add User button was non-functional).
+
+Work Log:
+- store: added addUser(u), updateUser(id, patch), removeUser(id) actions.
+- users-view.tsx rewrite: Add User button now opens a functional dialog with a validated form (Full name, Email, Role [Researcher/Admin], Initial status [Active/Suspended]) + security notice ("credentials via secure out-of-band channel").
+  • Validation: required name, valid-email regex, duplicate-email detection.
+  • On submit: addUser + audit log "Created user".
+- Per-row actions dropdown (admin only): Suspend/Activate, Toggle role (Researcher↔Admin), Remove (disabled for self).
+- Empty state for no users; "(you)" marker for current user.
+
+Verification (Agent Browser):
+- Open Users → Add User dialog opens with all fields + security notice.
+- Filled "Dr. Jane Researcher" / jane.researcher@implant-ai.research / Researcher / Active → Add User → toast "User added"; user appears at top of table; Total Users 4→5, Researchers 3→4.
+- Duplicate email (a.researcher@...) → validation "already exists", blocked.
+- Audit Logs view shows "Created user" entry for jane.researcher.
+- Row actions dropdown renders (Suspend/Activate, Toggle role, Remove).
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- Add User fully functional: validated form, audit-logged, appears in table + stats.
+- Bonus: per-row suspend/activate, role toggle, remove.

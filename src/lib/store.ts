@@ -60,6 +60,9 @@ interface AppState {
   auditLogs: AuditLog[];
   addAuditLog: (l: Omit<AuditLog, "id">) => void;
   users: UserRecord[];
+  addUser: (u: UserRecord) => void;
+  updateUser: (id: string, patch: Partial<UserRecord>) => void;
+  removeUser: (id: string) => void;
   reports: ReportRecord[];
   addReport: (r: ReportRecord) => void;
   stats: typeof DEMO_STATS;
@@ -113,6 +116,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       ],
     })),
   users: generateDemoUsers(),
+  addUser: (u) => set((s) => ({ users: [u, ...s.users] })),
+  updateUser: (id, patch) => set((s) => ({ users: s.users.map((u) => (u.id === id ? { ...u, ...patch } : u)) })),
+  removeUser: (id) => set((s) => ({ users: s.users.filter((u) => u.id !== id) })),
   reports: generateDemoReports(),
   addReport: (r) => set((s) => ({ reports: [r, ...s.reports] })),
   stats: DEMO_STATS,
