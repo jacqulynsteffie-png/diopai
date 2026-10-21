@@ -240,7 +240,7 @@ function ImportWizard({ open, onClose, onImport }: { open: boolean; onClose: () 
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); setTimeout(reset, 200); } }}>
-      <DialogContent className="max-w-2xl p-0 sm:rounded-2xl">
+      <DialogContent className="max-w-2xl sm:max-w-2xl p-0 sm:rounded-2xl">
         <DialogHeader className="border-b border-border px-6 py-4">
           <DialogTitle>Import Dataset</DialogTitle>
           <DialogDescription>Upload and validate a research dataset (CSV / Excel).</DialogDescription>

@@ -203,7 +203,7 @@ function AddUserDialog({ open, onClose, onAdd }: { open: boolean; onClose: () =>
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); setTimeout(reset, 200); } }}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><UserPlus className="h-4 w-4 text-primary" /> Add Authorized User</DialogTitle>
           <DialogDescription>Create a new research team member. All access is audit-logged.</DialogDescription>

@@ -332,7 +332,7 @@ export function ModelTrainWizard() {
       </div>
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setTimeout(reset, 200); }}>
-        <DialogContent className="max-h-[100dvh] w-[calc(100%-1rem)] max-w-3xl gap-0 overflow-hidden p-0 sm:rounded-2xl [&>button]:right-3 [&>button]:top-3">
+        <DialogContent className="max-h-[100dvh] w-[calc(100%-1rem)] max-w-3xl sm:max-w-3xl gap-0 overflow-hidden p-0 sm:rounded-2xl [&>button]:right-3 [&>button]:top-3">
           <DialogHeader className="border-b border-border bg-brand-gradient-soft px-6 py-4">
             <DialogTitle className="flex items-center gap-2">
               {quickAdd ? <Plus className="h-4 w-4 text-primary" /> : <Brain className="h-4 w-4 text-primary" />}

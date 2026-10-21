@@ -396,3 +396,27 @@ Verification (Agent Browser + VLM):
 
 Stage Summary:
 - "Bursting" logo fixed: replaced crude threshold recolor with smooth alpha-matte white silhouette. Logo now clean, sharp, big, and matches the dark navy background.
+
+---
+Task ID: remove-bg + fix-wizard-alignment
+Agent: main (orchestrator)
+Task: Remove login logo background completely; fix New Case wizard alignment.
+
+Work Log:
+- Login bg removal: removed bg-grid-dark, bg-radial-glow, animated particles, neural-network SVG, and the logo drop-shadow from the login left panel → now a clean solid navy (#0B1220) with the light logo + content only. VLM-verified: "clean solid dark navy, no grid/glow/particles/neural lines, logo clean".
+- New Case wizard alignment ROOT CAUSE: base shadcn DialogContent has `sm:max-w-lg` (512px) which OVERRIDES my `max-w-4xl` at desktop (different responsive variants don't dedupe in tailwind-merge) → wizard dialog was only 512px wide (cramped, fields cropped/misaligned). FIX: added `sm:max-w-4xl` → dialog now 896px.
+- Same fix applied to other wide dialogs: model-train-wizard (sm:max-w-3xl), dataset import (sm:max-w-2xl), add-user (sm:max-w-md).
+- SectionCard: added `h-full flex flex-col` + `items-start` on field grid → equal card heights per row.
+- Step3 CBCT: Image Quality card → `md:col-span-2` (full-width bottom row, balanced grid).
+- RadioGroups (CBCT Available, Bruxism, Augmentation): `flex gap-4 pt-2` → `flex h-9 items-center gap-4` (aligns with adjacent h-9 inputs, no vertical offset).
+
+Verification (Agent Browser + VLM):
+- Login: clean solid navy, no bg effects, logo clean.
+- Wizard dialog width: 512→896px.
+- Step 3 (CBCT): VLM "clean 2-column grid with full-width bottom card. No cropping or misalignment."
+- Step 4 (Clinical): computed grid = 2 columns × 567px (confirmed correct 2-col layout).
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- Login logo background completely removed (clean solid navy).
+- New Case wizard alignment fixed (root cause: dialog was 512px due to sm:max-w-lg override → now 896px; cards equal height; full-width bottom card; radios aligned).

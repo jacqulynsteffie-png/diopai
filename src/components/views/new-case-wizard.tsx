@@ -263,7 +263,7 @@ export function NewCaseWizard() {
 
   return (
     <Dialog open={newCaseOpen} onOpenChange={(o) => { if (!o) close(); }}>
-      <DialogContent className="max-h-[100dvh] w-[calc(100%-1rem)] max-w-4xl gap-0 overflow-hidden p-0 sm:rounded-2xl [&>button]:right-3 [&>button]:top-3">
+      <DialogContent className="max-h-[100dvh] w-[calc(100%-1rem)] max-w-4xl sm:max-w-4xl gap-0 overflow-hidden p-0 sm:rounded-2xl [&>button]:right-3 [&>button]:top-3">
         {/* Header / step indicator */}
         <div className="relative border-b border-border bg-brand-gradient-soft px-6 py-4">
           <div className="flex items-center justify-between">
@@ -394,7 +394,7 @@ function Step1({ draft, update }: { draft: Draft; update: (p: Partial<Draft>) =>
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="CBCT Available" hint="Preoperative CBCT acquired">
-            <RadioGroup value={draft.cbctAvailable ? "yes" : "no"} onValueChange={(v) => update({ cbctAvailable: v === "yes" })} className="flex gap-4 pt-2">
+            <RadioGroup value={draft.cbctAvailable ? "yes" : "no"} onValueChange={(v) => update({ cbctAvailable: v === "yes" })} className="flex h-9 items-center gap-4">
               <div className="flex items-center gap-1.5"><RadioGroupItem value="yes" id="cbct-y" /><Label htmlFor="cbct-y" className="text-xs">Yes</Label></div>
               <div className="flex items-center gap-1.5"><RadioGroupItem value="no" id="cbct-n" /><Label htmlFor="cbct-n" className="text-xs">No</Label></div>
             </RadioGroup>
@@ -474,7 +474,7 @@ function Step3({ draft, updateCbct }: { draft: Draft; updateCbct: (p: Partial<Cb
           <Field label="Sinus Floor to Crest" unit="mm (maxilla)" hint="Nullable when not applicable"><Input type="number" step="0.1" value={c.sinusFloorToCrest ?? ""} onChange={(e) => updateCbct({ sinusFloorToCrest: e.target.value ? Number(e.target.value) : null })} /></Field>
           <Field label="Distance to Inferior Alveolar" unit="mm (mandible)" hint="Nullable when not applicable"><Input type="number" step="0.1" value={c.distanceToIA ?? ""} onChange={(e) => updateCbct({ distanceToIA: e.target.value ? Number(e.target.value) : null })} /></Field>
         </SectionCard>
-        <SectionCard title="Image Quality">
+        <SectionCard title="Image Quality" className="md:col-span-2">
           <Field label="Image Quality Score" unit="1–5 (configurable)"><Input type="number" min={1} max={5} value={c.imageQualityScore ?? ""} onChange={(e) => updateCbct({ imageQualityScore: e.target.value ? Number(e.target.value) : null })} /></Field>
           <Field label="Assessment Status">
             <Select value={c.assessmentStatus ?? "Pending"} onValueChange={(v) => updateCbct({ assessmentStatus: v as CbctFeatures["assessmentStatus"] })}>
@@ -507,7 +507,7 @@ function Step4({ draft, updateClinical }: { draft: Draft; updateClinical: (p: Pa
           </Select>
         </Field>
         <Field label="Bruxism">
-          <RadioGroup value={cl.bruxism ? "yes" : "no"} onValueChange={(v) => updateClinical({ bruxism: v === "yes" })} className="flex gap-4 pt-2">
+          <RadioGroup value={cl.bruxism ? "yes" : "no"} onValueChange={(v) => updateClinical({ bruxism: v === "yes" })} className="flex h-9 items-center gap-4">
             <div className="flex items-center gap-1.5"><RadioGroupItem value="yes" id="br-y" /><Label htmlFor="br-y" className="text-xs">Yes</Label></div>
             <div className="flex items-center gap-1.5"><RadioGroupItem value="no" id="br-n" /><Label htmlFor="br-n" className="text-xs">No</Label></div>
           </RadioGroup>
@@ -530,7 +530,7 @@ function Step4({ draft, updateClinical }: { draft: Draft; updateClinical: (p: Pa
           </Select>
         </Field>
         <Field label="Augmentation Performed">
-          <RadioGroup value={cl.augmentationPerformed ? "yes" : "no"} onValueChange={(v) => updateClinical({ augmentationPerformed: v === "yes" })} className="flex gap-4 pt-2">
+          <RadioGroup value={cl.augmentationPerformed ? "yes" : "no"} onValueChange={(v) => updateClinical({ augmentationPerformed: v === "yes" })} className="flex h-9 items-center gap-4">
             <div className="flex items-center gap-1.5"><RadioGroupItem value="yes" id="aug-y" /><Label htmlFor="aug-y" className="text-xs">Yes</Label></div>
             <div className="flex items-center gap-1.5"><RadioGroupItem value="no" id="aug-n" /><Label htmlFor="aug-n" className="text-xs">No</Label></div>
           </RadioGroup>
@@ -630,11 +630,11 @@ function Field({ label, children, hint, unit }: { label: string; children: React
   );
 }
 
-function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
+function SectionCard({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className={cn("flex h-full flex-col rounded-xl border border-border bg-card p-4", className)}>
       <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</h4>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{children}</div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 items-start">{children}</div>
     </div>
   );
 }
