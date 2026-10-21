@@ -420,3 +420,23 @@ Verification (Agent Browser + VLM):
 Stage Summary:
 - Login logo background completely removed (clean solid navy).
 - New Case wizard alignment fixed (root cause: dialog was 512px due to sm:max-w-lg override → now 896px; cards equal height; full-width bottom card; radios aligned).
+
+---
+Task ID: remove-white-box-only + restore-bg
+Agent: main (orchestrator)
+Task: Remove ONLY the white box around the logo (restore the medical-AI background I had wrongly removed).
+
+Work Log:
+- Diagnosed: the original logo's "white" background is actually LIGHT GREY (#ec-#f5, min channel ~236), BELOW my previous min>=242 white-removal threshold → those light-grey border pixels were kept and turned into the white bars/box at the logo edges.
+- Fix: switched the logo matte from a min-channel brightness threshold to a SATURATION-based matte. The neutral light-grey bg has low saturation (s<0.05) + high brightness (b>=215) → transparent; the cyan tooth (s~0.1) and dark text (b<200) → kept; smooth ramp in the transition zone for anti-aliased edges.
+- Auto-cropped the final logos by alpha bbox (+12px padding) → tightly framed, no transparent/white border, centered.
+- Regenerated all 4 assets: logo-brand-light.png (white silhouette, dark surfaces), logo-brand.png (original colors, light surfaces), logo-icon-light.png, logo-icon.png. VLM-verified: "no white box/border/bars at edges".
+- RESTORED the login left-panel medical-AI background that I had wrongly removed: bg-grid-dark, bg-radial-glow, animated particles, neural-network SVG (kept the logo drop-shadow removed).
+
+Verification (Agent Browser + VLM):
+- Login: "(1) background restored — grid, glow, particles, neural network. (2) logo clean, NO white box/border/bars."
+- Sidebar logo: "clean, no white box — just white tooth + DIOP AI on navy"; 44px (big), hasWhiteCard:false.
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- Only the white box around the logo removed (saturation-based matte + alpha autocrop); medical-AI background RESTORED on login; sidebar logo clean & big on navy.

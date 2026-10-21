@@ -35,8 +35,49 @@ export function LoginView() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      {/* Left — clean brand panel */}
+      {/* Left — medical-AI visualization */}
       <div className="relative hidden overflow-hidden bg-[#0B1220] lg:block">
+        <div className="absolute inset-0 bg-grid-dark opacity-60" />
+        <div className="absolute inset-0 bg-radial-glow" />
+        {/* animated particles */}
+        {Array.from({ length: 18 }).map((_, i) => (
+          <motion.span
+            key={i}
+            className="absolute h-1 w-1 rounded-full bg-cyan-400/60"
+            style={{ left: `${(i * 53) % 100}%`, top: `${(i * 37) % 100}%` }}
+            animate={{ y: [0, -16, 0], opacity: [0.2, 0.9, 0.2] }}
+            transition={{ duration: 3 + (i % 5), repeat: Infinity, delay: i * 0.2 }}
+          />
+        ))}
+        {/* neural network SVG */}
+        <svg className="absolute inset-0 h-full w-full opacity-40" viewBox="0 0 400 600" fill="none">
+          <defs>
+            <linearGradient id="net" x1="0" y1="0" x2="400" y2="600">
+              <stop stopColor="#2563EB" stopOpacity="0.8" />
+              <stop offset="1" stopColor="#06B6D4" stopOpacity="0.4" />
+            </linearGradient>
+          </defs>
+          {[120, 240, 360, 480].map((y, li) =>
+            [80, 160, 240, 320].map((x, ni) => (
+              <g key={`${li}-${ni}`}>
+                {li < 3 &&
+                  [80, 160, 240, 320].map((x2, ni2) => (
+                    <line
+                      key={`${li}-${ni}-${ni2}`}
+                      x1={x}
+                      y1={y}
+                      x2={x2}
+                      y2={[240, 360, 480][li]}
+                      stroke="url(#net)"
+                      strokeWidth="0.5"
+                      opacity="0.4"
+                    />
+                  ))}
+                <circle cx={x} cy={y} r="4" fill="#06B6D4" opacity="0.7" />
+              </g>
+            ))
+          )}
+        </svg>
         {/* brand logo showcase */}
         <motion.div
           initial={{ opacity: 0, scale: 0.85 }}
