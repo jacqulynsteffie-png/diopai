@@ -249,3 +249,36 @@ Stage Summary:
 - Sign-in works (clean server restart resolved stale build).
 - Fully rebranded to Diop AI Research across app + docs + emails.
 - New attractive dental+AI themed logo (tooth + neural network + implant collar).
+
+---
+Task ID: clear-db + train-on-data + min-data + db-store + full-customize
+Agent: main (orchestrator)
+Task: Clear database; train model on user-added data + algorithm; min-data gate (5); durable storage; full model customization.
+
+Work Log:
+- types: ModelVersion extended (trainingDatasetId, hyperparameters, trainTestSplit, cvFolds, randomSeed). Added MIN_TRAINING_RECORDS=5 constant.
+- store: clearResearchData() (wipes cases/datasets/models/reports, keeps users+audit, logs), resetDemoData() (restores synthetic 128 cases + datasets + models).
+- backend: POST/GET /api/models (runtime=nodejs) — durably stores trained models to SQLite (ModelVersion table) with hyperparameters+metrics JSON; returns stored:true.
+- Train Model wizard rewritten (fully customizable):
+  • Dataset selector (existing datasets, shows records/eligible/quality); falls back to in-memory cases if none.
+  • Data-sufficiency gate: "Minimum 5 records required to train. You have X. Sufficient/insufficient" — Start Training DISABLED when < 5 records.
+  • Algorithm + per-algorithm HYPERPARAMETER schema (fully editable): LR(solver/penalty/C/max_iter), RF(n_estimators/max_depth/min_samples_split/max_features), XGB(n_estimators/max_depth/learning_rate/subsample/colsample_bytree). Reset-defaults.
+  • Validation config: CV folds, test split %, random seed.
+  • Feature selection from data dictionary.
+  • Animated training on selected data+algorithm+hyperparams (AiProcessingCore) → synthetic metrics + confusion matrix + config summary.
+  • "Register & Store Model" → addModel (in-memory) + POST /api/models (DB) + audit log "Trained model … stored".
+- Settings → new "Data Management" tab (admin): Research Data Overview (cases/datasets/models/min-to-train), Clear Research Data (AlertDialog confirm, audit-logged), Restore Demo Data.
+
+Verification (Agent Browser):
+- Settings > Data Management: shows Cases 128 / Datasets 2 / Models 3 / Min to train 5.
+- Clear all research data (confirm) → toast "Research data cleared"; Cases → 0; datasets/models cleared.
+- Train Model with 0 data → "Minimum 5 records required to train. You have 0. Add more data before training." Start Training DISABLED.
+- Restore demo data → 128 cases back.
+- Train XGBoost v1.1 on 128-record dataset + hyperparams (n_est 400/depth 6/lr 0.05/subsample 0.8/colsample 0.8, 5-fold, 20% test, seed 42) → animated pipeline → results (ROC-AUC 0.899) → Register & Store → toast "Model trained & stored".
+- GET /api/models returns the trained model durably in DB (modelId, hyperparameters, trainTestSplit 0.2, cvFolds 5, randomSeed 42, full metrics, trainedAt, fileLocation).
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- Clear/reset database functional (admin, audit-logged).
+- Train on user-selected data + algorithm + fully-customizable hyperparameters; min-5-record gate enforced.
+- Trained models durably stored to SQLite via /api/models.

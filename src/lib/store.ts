@@ -55,6 +55,8 @@ interface AppState {
   updateCase: (id: string, patch: Partial<ResearchCase>) => void;
   models: ModelVersion[];
   addModel: (m: ModelVersion) => void;
+  clearResearchData: () => void;
+  resetDemoData: () => void;
   datasets: DatasetRecord[];
   addDataset: (d: DatasetRecord) => void;
   auditLogs: AuditLog[];
@@ -105,6 +107,44 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   models: generateDemoModels(),
   addModel: (m) => set((s) => ({ models: [m, ...s.models] })),
+  clearResearchData: () =>
+    set({
+      cases: [],
+      datasets: [],
+      models: [],
+      reports: [],
+      auditLogs: [
+        {
+          id: `log_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          user: "System",
+          action: "Cleared all research data",
+          module: "System",
+          caseId: null,
+          status: "Warning",
+          detail: "All cases, datasets, models and reports cleared.",
+        },
+      ],
+    }),
+  resetDemoData: () =>
+    set({
+      cases: generateDemoCases(128),
+      datasets: generateDemoDatasets(),
+      models: generateDemoModels(),
+      reports: generateDemoReports(),
+      auditLogs: [
+        {
+          id: `log_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          user: "System",
+          action: "Reset to demo data",
+          module: "System",
+          caseId: null,
+          status: "Success",
+          detail: "Synthetic demo dataset restored.",
+        },
+      ],
+    }),
   datasets: generateDemoDatasets(),
   addDataset: (d) => set((s) => ({ datasets: [d, ...s.datasets] })),
   auditLogs: generateDemoAuditLogs(40),

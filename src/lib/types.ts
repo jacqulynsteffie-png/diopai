@@ -118,13 +118,21 @@ export interface ModelVersion {
   algorithm: ModelAlgorithm;
   status: ModelStatus;
   trainingDatasetVersion: string;
+  trainingDatasetId?: string | null;
   featureList: string[];
+  hyperparameters?: Record<string, number | string>;
+  trainTestSplit?: number; // e.g. 0.2 = 20% test
+  cvFolds?: number;
+  randomSeed?: number;
   trainedAt: string | null;
   validationStrategy: string;
   metrics: ModelMetrics | null;
   rocAuc: number | null;
   fileLocation: string;
 }
+
+// Minimum dataset size required to train a model (configurable in Research Configuration)
+export const MIN_TRAINING_RECORDS = 5;
 
 export interface ModelMetrics {
   accuracy: number;

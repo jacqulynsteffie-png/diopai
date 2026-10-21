@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { User, Lock, Palette, Cpu, FlaskConical, BookOpen, Save, Moon, Sun, Info } from "lucide-react";
+import { User, Lock, Palette, Cpu, FlaskConical, BookOpen, Save, Moon, Sun, Info, Database, Trash2, RefreshCw, AlertTriangle } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useTheme } from "next-themes";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,14 +12,26 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { STUDY_META, RESEARCH_PROTOCOL_TBD } from "@/lib/types";
+import { STUDY_META, RESEARCH_PROTOCOL_TBD, MIN_TRAINING_RECORDS } from "@/lib/types";
 
 export function SettingsView() {
-  const { currentUser } = useAppStore();
+  const { currentUser, clearResearchData, resetDemoData, cases, datasets, models } = useAppStore();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
+  const isAdmin = currentUser.role === "Admin";
 
   return (
     <Tabs defaultValue="profile">
@@ -30,6 +42,7 @@ export function SettingsView() {
         <TabsTrigger value="model"><Cpu className="h-3.5 w-3.5" /> Model</TabsTrigger>
         <TabsTrigger value="research"><FlaskConical className="h-3.5 w-3.5" /> Research</TabsTrigger>
         <TabsTrigger value="dictionary"><BookOpen className="h-3.5 w-3.5" /> Data Dictionary</TabsTrigger>
+        <TabsTrigger value="data"><Database className="h-3.5 w-3.5" /> Data Management</TabsTrigger>
       </TabsList>
 
       <TabsContent value="profile">
@@ -147,7 +160,78 @@ export function SettingsView() {
           </CardContent>
         </Card>
       </TabsContent>
+
+      <TabsContent value="data">
+        <div className="space-y-4">
+          {!isAdmin && (
+            <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+              <AlertTriangle className="h-3.5 w-3.5" /> Data management is restricted to administrators.
+            </div>
+          )}
+          <Card>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Database className="h-4 w-4 text-primary" /> Research Data Overview</CardTitle><CardDescription>Current in-memory research store</CardDescription></CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <DataStat label="Cases" value={cases.length} />
+                <DataStat label="Datasets" value={datasets.length} />
+                <DataStat label="Models" value={models.length} />
+                <DataStat label="Min to train" value={MIN_TRAINING_RECORDS} />
+              </div>
+              <p className="mt-3 text-[11px] text-muted-foreground">A trained model requires at least {MIN_TRAINING_RECORDS} records in the selected dataset.</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-red-200">
+            <CardHeader><CardTitle className="flex items-center gap-2"><Trash2 className="h-4 w-4 text-red-500" /> Clear Research Data</CardTitle><CardDescription>Remove all cases, datasets, models and reports</CardDescription></CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+                <AlertTriangle className="h-3.5 w-3.5 mt-0.5" />
+                <span>This permanently clears all research cases, datasets, trained models and reports. Users and audit logs are retained. This action is audit-logged and cannot be undone.</span>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" disabled={!isAdmin}><Trash2 className="h-4 w-4" /> Clear all research data</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear all research data?</AlertDialogTitle>
+                    <AlertDialogDescription>This will permanently remove {cases.length} case(s), {datasets.length} dataset(s), {models.length} model(s) and all reports. Users are retained. This cannot be undone.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-white hover:bg-destructive/90"
+                      onClick={() => { clearResearchData(); toast({ title: "Research data cleared", description: "All cases, datasets, models and reports removed." }); }}
+                    >
+                      Yes, clear everything
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle className="flex items-center gap-2"><RefreshCw className="h-4 w-4 text-primary" /> Restore Demo Data</CardTitle><CardDescription>Reload the synthetic demonstration dataset</CardDescription></CardHeader>
+            <CardContent>
+              <p className="mb-3 text-[11px] text-muted-foreground">Restores {128} synthetic research cases, demo datasets and the default model set. Clearly labeled DEMO — not real clinical data.</p>
+              <Button variant="outline" size="sm" disabled={!isAdmin} onClick={() => { resetDemoData(); toast({ title: "Demo data restored", description: "Synthetic research dataset reloaded." }); }}>
+                <RefreshCw className="h-4 w-4" /> Restore demo dataset
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </TabsContent>
     </Tabs>
+  );
+}
+
+function DataStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border border-border bg-muted/30 p-3 text-center">
+      <p className="text-2xl font-semibold tabular-nums text-foreground">{value}</p>
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
+    </div>
   );
 }
 
