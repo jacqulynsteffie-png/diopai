@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import {
   ResearchCase,
   ViewId,
@@ -70,7 +71,9 @@ interface AppState {
   stats: typeof DEMO_STATS;
 }
 
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>()(
+  persist(
+    (set, get) => ({
   authenticated: false,
   currentUser: {
     name: "Dr. A. Researcher",
@@ -98,14 +101,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   theme: "light",
   setTheme: (t) => set({ theme: t }),
 
-  cases: generateDemoCases(128),
+  cases: [],
   addCase: (c) => set((s) => ({ cases: [c, ...s.cases] })),
   updateCase: (id, patch) =>
     set((s) => ({
       cases: s.cases.map((c) => (c.id === id ? { ...c, ...patch } : c)),
     })),
 
-  models: generateDemoModels(),
+  models: [],
   addModel: (m) => set((s) => ({ models: [m, ...s.models] })),
   clearResearchData: () =>
     set({
@@ -145,9 +148,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         },
       ],
     }),
-  datasets: generateDemoDatasets(),
+  datasets: [],
   addDataset: (d) => set((s) => ({ datasets: [d, ...s.datasets] })),
-  auditLogs: generateDemoAuditLogs(40),
+  auditLogs: [],
   addAuditLog: (l) =>
     set((s) => ({
       auditLogs: [
@@ -159,10 +162,30 @@ export const useAppStore = create<AppState>((set, get) => ({
   addUser: (u) => set((s) => ({ users: [u, ...s.users] })),
   updateUser: (id, patch) => set((s) => ({ users: s.users.map((u) => (u.id === id ? { ...u, ...patch } : u)) })),
   removeUser: (id) => set((s) => ({ users: s.users.filter((u) => u.id !== id) })),
-  reports: generateDemoReports(),
+  reports: [],
   addReport: (r) => set((s) => ({ reports: [r, ...s.reports] })),
   stats: DEMO_STATS,
-}));
+    }),
+    {
+      name: "diop-ai-research-v1",
+      // persist only durable data + sidebar; never persist auth/session/view (avoids SSR hydration mismatch + requires login each session)
+      partialize: (s) => ({
+        cases: s.cases,
+        datasets: s.datasets,
+        models: s.models,
+        reports: s.reports,
+        auditLogs: s.auditLogs,
+        users: s.users,
+        sidebarCollapsed: s.sidebarCollapsed,
+      }),
+      skipHydration: true,
+    }
+  )
+);
+// rehydrate on the client after mount
+if (typeof window !== "undefined") {
+  useAppStore.persist.rehydrate();
+}
 
 // helper selectors
 export function useSelectedCase() {

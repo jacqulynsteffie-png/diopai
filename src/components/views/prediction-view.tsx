@@ -70,6 +70,10 @@ export function PredictionView() {
 
   function run() {
     if (!caseData) return;
+    if (!activeModel) {
+      toast({ title: "No model available", description: "Train a model first in Model Performance." });
+      return;
+    }
     setPhase("prep");
     const steps: Phase[] = ["prep", "processing", "generating"];
     let i = 0;
@@ -149,8 +153,8 @@ export function PredictionView() {
           <div className="flex items-center gap-3">
             <div className="text-right">
               <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Model</p>
-              <p className="text-sm font-semibold text-foreground flex items-center gap-1.5"><Cpu className="h-3.5 w-3.5 text-primary" />{activeModel.algorithm}</p>
-              <p className="text-[11px] text-muted-foreground">v{activeModel.version} · {activeModel.status}</p>
+              <p className="text-sm font-semibold text-foreground flex items-center gap-1.5"><Cpu className="h-3.5 w-3.5 text-primary" />{activeModel ? activeModel.algorithm : "No model"}</p>
+              <p className="text-[11px] text-muted-foreground">{activeModel ? `v${activeModel.version} · ${activeModel.status}` : "Train a model to begin"}</p>
             </div>
             <select
               value={caseData.id}

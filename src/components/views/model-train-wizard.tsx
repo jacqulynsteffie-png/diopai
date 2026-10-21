@@ -333,7 +333,7 @@ export function ModelTrainWizard() {
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setTimeout(reset, 200); }}>
         <DialogContent className="max-h-[100dvh] w-[calc(100%-1rem)] max-w-3xl sm:max-w-3xl gap-0 overflow-hidden p-0 sm:rounded-2xl [&>button]:right-3 [&>button]:top-3">
-          <DialogHeader className="border-b border-border bg-brand-gradient-soft px-6 py-4">
+          <DialogHeader className="min-w-0 overflow-hidden border-b border-border bg-brand-gradient-soft px-6 py-4">
             <DialogTitle className="flex items-center gap-2">
               {quickAdd ? <Plus className="h-4 w-4 text-primary" /> : <Brain className="h-4 w-4 text-primary" />}
               {quickAdd ? "Register Model" : "Train Research Model"}
@@ -343,7 +343,7 @@ export function ModelTrainWizard() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-[60vh] overflow-y-auto scrollbar-medical px-6 py-5">
+          <div className="max-h-[60vh] min-w-0 overflow-y-auto overflow-x-hidden scrollbar-medical px-6 py-5">
             <AnimatePresence mode="wait">
               {mode === "config" && (
                 <motion.div key="config" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-5">
@@ -562,7 +562,7 @@ export function ModelTrainWizard() {
             </AnimatePresence>
           </div>
 
-          <DialogFooter className="border-t border-border px-6 py-3">
+          <DialogFooter className="min-w-0 border-t border-border px-6 py-3">
             {mode === "config" && (
               <>
                 <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button>

@@ -240,13 +240,13 @@ function ImportWizard({ open, onClose, onImport }: { open: boolean; onClose: () 
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); setTimeout(reset, 200); } }}>
-      <DialogContent className="max-w-2xl sm:max-w-2xl p-0 sm:rounded-2xl">
-        <DialogHeader className="border-b border-border px-6 py-4">
+      <DialogContent className="max-w-2xl sm:max-w-2xl p-0 sm:rounded-2xl overflow-hidden">
+        <DialogHeader className="min-w-0 overflow-hidden border-b border-border px-6 py-4">
           <DialogTitle>Import Dataset</DialogTitle>
           <DialogDescription>Upload and validate a research dataset (CSV / Excel).</DialogDescription>
         </DialogHeader>
         {/* step indicator */}
-        <div className="flex items-center gap-1 border-b border-border px-6 py-3 overflow-x-auto scrollbar-medical">
+        <div className="flex min-w-0 items-center gap-1 border-b border-border px-6 py-3 overflow-x-auto scrollbar-medical">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center gap-1">
               <div className={cn("grid h-6 w-6 place-items-center rounded-full text-[10px] font-semibold", i === step ? "bg-brand-gradient text-white" : i < step ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground")}>
@@ -258,7 +258,7 @@ function ImportWizard({ open, onClose, onImport }: { open: boolean; onClose: () 
           ))}
         </div>
 
-        <div className="max-h-[50vh] overflow-y-auto scrollbar-medical px-6 py-5">
+        <div className="max-h-[50vh] min-w-0 overflow-y-auto overflow-x-hidden scrollbar-medical px-6 py-5">
           <AnimatePresence mode="wait">
             <motion.div key={step} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }}>
               {step === 0 && (
@@ -326,7 +326,7 @@ function ImportWizard({ open, onClose, onImport }: { open: boolean; onClose: () 
           </AnimatePresence>
         </div>
 
-        <div className="flex items-center justify-between border-t border-border px-6 py-3">
+        <div className="flex min-w-0 items-center justify-between border-t border-border px-6 py-3">
           <Button variant="ghost" size="sm" disabled={step === 0} onClick={() => setStep(step - 1)}><ArrowLeft className="h-4 w-4" /> Back</Button>
           <Button size="sm" className="bg-brand-gradient text-white" onClick={next}>
             {step === steps.length - 1 ? <><Check className="h-4 w-4" /> Import</> : <>Next <ArrowRight className="h-4 w-4" /></>}

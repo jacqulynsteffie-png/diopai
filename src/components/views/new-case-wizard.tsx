@@ -265,7 +265,7 @@ export function NewCaseWizard() {
     <Dialog open={newCaseOpen} onOpenChange={(o) => { if (!o) close(); }}>
       <DialogContent className="max-h-[100dvh] w-[calc(100%-1rem)] max-w-4xl sm:max-w-4xl gap-0 overflow-hidden p-0 sm:rounded-2xl [&>button]:right-3 [&>button]:top-3">
         {/* Header / step indicator */}
-        <div className="relative border-b border-border bg-brand-gradient-soft px-6 py-4">
+        <div className="relative min-w-0 overflow-hidden border-b border-border bg-brand-gradient-soft px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-base">New Research Case</DialogTitle>
@@ -278,7 +278,7 @@ export function NewCaseWizard() {
             </Button>
           </div>
           {/* Step indicator */}
-          <div className="mt-4 flex items-center gap-1 overflow-x-auto scrollbar-medical">
+          <div className="mt-4 flex min-w-0 items-center gap-1 overflow-x-auto scrollbar-medical">
             {STEPS.map((s, i) => {
               const active = i === step;
               const done = i < step;
@@ -294,11 +294,10 @@ export function NewCaseWizard() {
                       {done ? <Check className="h-3.5 w-3.5" /> : <span>{String(s.id + 1).padStart(2, "0")}</span>}
                     </div>
                     <div className="hidden min-w-0 sm:block">
-                      <p className={cn("text-[11px] font-medium leading-tight", active ? "text-foreground" : "text-muted-foreground")}>{s.title}</p>
-                      <p className="text-[10px] text-muted-foreground leading-tight truncate">{s.desc}</p>
+                      <p className={cn("text-[11px] font-medium leading-tight truncate", active ? "text-foreground" : "text-muted-foreground")}>{s.title}</p>
                     </div>
                   </div>
-                  {i < STEPS.length - 1 && <div className={cn("mx-1 h-px w-6 sm:w-8", done ? "bg-emerald-400" : "bg-border")} />}
+                  {i < STEPS.length - 1 && <div className={cn("mx-1 h-px w-4 sm:w-6", done ? "bg-emerald-400" : "bg-border")} />}
                 </div>
               );
             })}
@@ -306,7 +305,7 @@ export function NewCaseWizard() {
         </div>
 
         {/* Body */}
-        <div className="max-h-[60vh] overflow-y-auto scrollbar-medical px-6 py-5">
+        <div className="max-h-[60vh] min-w-0 overflow-y-auto overflow-x-hidden scrollbar-medical px-6 py-5">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
@@ -326,7 +325,7 @@ export function NewCaseWizard() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-border px-6 py-3">
+        <div className="flex min-w-0 items-center justify-between border-t border-border px-6 py-3">
           <Button variant="ghost" size="sm" onClick={prev} disabled={step === 0}>
             <ChevronLeft className="h-4 w-4" /> Back
           </Button>

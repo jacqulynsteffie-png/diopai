@@ -60,7 +60,7 @@ const outcomeColors: Record<string, string> = {
 };
 
 export function DashboardView() {
-  const { cases, models, stats, openNewCase, setView, setSelectedCase } = useAppStore();
+  const { cases, models, openNewCase, setView, setSelectedCase } = useAppStore();
   const [loading, setLoading] = React.useState(true);
   const [query, setQuery] = React.useState("");
   const [outcomeFilter, setOutcomeFilter] = React.useState("all");
@@ -126,20 +126,20 @@ export function DashboardView() {
   const statsCards = [
     {
       label: "Total Research Cases",
-      value: stats.totalCases,
-      desc: "Retrospective records",
+      value: cases.length,
+      desc: cases.length ? "Retrospective records" : "No cases yet",
       icon: FolderSearch,
-      trend: "+8 this week",
-      up: true,
+      trend: cases.length ? `${cases.length} record${cases.length === 1 ? "" : "s"}` : "Start by adding a case",
+      up: cases.length > 0,
       accent: "from-blue-500 to-cyan-500",
     },
     {
       label: "Eligible Cases",
       value: eligible,
-      desc: `${Math.round((eligible / stats.totalCases) * 100)}% of total`,
+      desc: `${cases.length ? Math.round((eligible / cases.length) * 100) : 0}% of total`,
       icon: ClipboardCheck,
       trend: "Eligibility applied",
-      up: true,
+      up: eligible > 0,
       accent: "from-teal-500 to-emerald-500",
     },
     {
@@ -147,17 +147,17 @@ export function DashboardView() {
       value: predictions,
       desc: "AI outcome predictions",
       icon: Brain,
-      trend: "+12 this week",
-      up: true,
+      trend: predictions ? `${predictions} total` : "No predictions yet",
+      up: predictions > 0,
       accent: "from-cyan-500 to-blue-500",
     },
     {
       label: "Current Model",
-      value: "XGBoost v1.0",
-      desc: activeModel?.status ?? "—",
+      value: activeModel ? `${activeModel.algorithm} v${activeModel.version}` : "No model",
+      desc: activeModel?.status ?? "Train a model to begin",
       icon: Cpu,
-      trend: `ROC-AUC ${activeModel?.rocAuc ?? "—"}`,
-      up: true,
+      trend: activeModel?.rocAuc ? `ROC-AUC ${activeModel.rocAuc}` : "—",
+      up: !!activeModel,
       accent: "from-violet-500 to-fuchsia-500",
       isText: true,
     },

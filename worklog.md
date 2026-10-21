@@ -440,3 +440,29 @@ Verification (Agent Browser + VLM):
 
 Stage Summary:
 - Only the white box around the logo removed (saturation-based matte + alpha autocrop); medical-AI background RESTORED on login; sidebar logo clean & big on navy.
+
+---
+Task ID: wizard-overflow-fix + start-from-zero
+Agent: main (orchestrator)
+Task: Fix New Case wizard overlap/clipping + missing Next button; clear all data + start from zero.
+
+Work Log:
+- WIZARD OVERFLOW ROOT CAUSE: base DialogContent is `display: grid` + `overflow-hidden`; its children (header/body/footer) default to `min-width: auto` → the step indicator's intrinsic width forced children to 1180-1228px, overflowing the 896px dialog → Next button laid out off-screen (x=1321), step 05/06 clipped, "CBCT Quality" truncated.
+- FIX: added `min-w-0` (+ `overflow-hidden`/`overflow-x-hidden`) to header, body, footer, and step indicator so they shrink to dialog width; step indicator `overflow-x-auto` now scrolls internally instead of expanding. Also made step indicator compact (dropped description line, shorter connectors w-4 sm:w-6) so all 6 steps fit one row. Applied same `min-w-0` fix to model-train-wizard + dataset-import dialogs.
+- START FROM ZERO:
+  • store: wrapped in Zustand `persist` (localStorage key "diop-ai-research-v1", skipHydration + client rehydrate). partialize persists ONLY data (cases/datasets/models/reports/auditLogs/users/sidebarCollapsed), NOT auth/view/session → no SSR hydration mismatch, login required each session.
+  • Initialized all data slices EMPTY (cases/datasets/models/reports/auditLogs = []), users = demo (4). resetDemoData() restores sample dataset on demand.
+  • Dashboard: computes real stats from store (cases.length, eligible, predictions, activeModel) instead of hardcoded DEMO_STATS; guards empty (0%, "No cases yet", "No model").
+  • Prediction view: guards no-model (toast "No model available — train a model first"; header shows "No model").
+  • Model-performance: already uses optional chaining (handles empty).
+
+Verification (Agent Browser + VLM):
+- Wizard (1127×647): dialogScrollW=894=clientW (no overflow); Next button visible (x=987<1127); all 6 steps visible; no clipping/overlap (VLM confirmed).
+- Fresh load (cleared localStorage): dashboard 0 cases / 0 eligible / 0 predictions / "No model"; Cases view "No research cases"; clean layout (VLM).
+- Persistence: saved case RC-5396 → reload → still present (persisted). 
+- Clear Research Data (Settings → Data Management): confirm → "Research data cleared"; RC-5396 gone; reload → still empty (cleared state persisted).
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- New Case wizard: alignment fixed (min-w-0 on grid children), Next button visible, all 6 steps fit, no overlap/clipping.
+- App starts from zero: empty data by default + persisted (user-added data + cleared state survive reloads); dashboard shows real zero stats; empty states render cleanly; Clear Research Data resets to zero (persisted).
