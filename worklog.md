@@ -482,3 +482,20 @@ Verification (Agent Browser + VLM):
 
 Stage Summary:
 - Double close button removed; wizard now has a single X close (top-right).
+
+---
+Task ID: verify-persistence-show-constantly
+Agent: main (orchestrator)
+Task: Verify data stores correctly + shows constantly across navigation + reloads.
+
+Verification (Agent Browser):
+- Fresh start (cleared localStorage): zero state (0 cases, "No model").
+- Add case via wizard → saved RC-5969 → written to localStorage (caseInStorage:true) → visible in Cases view → Dashboard shows "Total Research Cases: 1".
+- Reload → sign in → case RC-5969 STILL present (casePersists:true) + localStorage has it.
+- Restore sample dataset → "Dataset restored" → reload → 128 cases persist.
+- Train model (XGBoost v1.1) → "Model trained & stored" → in Model Registry + localStorage → Dashboard "Current Model: XGBoost v1.1".
+- Reload → trained model v1.1 STILL in registry (trainedPersists:true) + Dashboard still shows "XGBoost v1.1".
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- Persistence confirmed working end-to-end: cases, datasets, and trained models all store to localStorage (Zustand persist) + show constantly across the Cases view, Model Registry, and Dashboard (Current Model) — surviving reloads. The "store correctly + show constantly" requirement is met.
