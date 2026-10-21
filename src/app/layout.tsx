@@ -28,7 +28,8 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Diop AI Research" }],
   icons: {
-    icon: "/logo.svg",
+    icon: "/logo-icon.png",
+    apple: "/logo-icon.png",
   },
 };
 

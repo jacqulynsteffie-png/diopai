@@ -315,3 +315,30 @@ Verification (Agent Browser):
 
 Stage Summary:
 - DEMO MODE fully removed from UI: banner, footer, AI badges, login, AI-status, settings, reports, dashboard. App reads as a production research platform (underlying sample data retained but unbranded). Scientific disclaimers (research-use only) retained.
+
+---
+Task ID: use-uploaded-logo
+Agent: main (orchestrator)
+Task: Use the user-uploaded image as the logo for the whole app.
+
+Work Log:
+- Analyzed uploaded logo (1024×559 PNG) via VLM: centered tooth+implant icon on top, "DIOP AI" + "Dental Implant Prediction AI" text below, white background, dark navy text.
+- Generated assets (PIL):
+  • public/logo-brand.png — full brand logo (white bg → transparent), 1024×559.
+  • public/logo-icon.png — square crop of the tooth+implant icon (top-center), 512×512, white bg → transparent. VLM-verified it contains the tooth icon.
+- logo.tsx rewritten:
+  • LogoMark = tooth icon on a white rounded card (ring+shadow) — used as favicon/mark, reads on dark surfaces.
+  • Logo (expanded) = full brand logo on a white rounded card (dark text reads on the navy sidebar).
+  • Logo (collapsed) = LogoMark icon card.
+- layout.tsx: favicon + apple-touch-icon → /logo-icon.png.
+- login-view: left-panel showcase + header + mobile brand → full brand logo on white cards (removed old SVG mark + wordmark text + unused LogoMark import).
+
+Verification (Agent Browser):
+- /logo-brand.png & /logo-icon.png served (HTTP 200).
+- Login: brand logo image renders (on white card) in showcase + header.
+- Sign in → sidebar shows brand logo on white card; collapsed sidebar shows icon mark on white card.
+- Favicon link → http://localhost:3000/logo-icon.png (apple-touch-icon too).
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- User's uploaded logo now used app-wide: sidebar (full brand), collapsed sidebar (icon), login showcase+header, topbar mobile (icon), favicon/apple-touch-icon. Dark-text logo rendered on white cards so it reads on the navy surfaces.

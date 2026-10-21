@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff, Lock, Mail, ShieldCheck, Sparkles, ArrowRight, Activity, ScanLine } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { STUDY_META } from "@/lib/types";
-import { LogoMark } from "@/components/app/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -78,27 +77,23 @@ export function LoginView() {
             ))
           )}
         </svg>
-        {/* dental implant silhouette */}
+        {/* brand logo showcase */}
         <motion.div
           initial={{ opacity: 0, scale: 0.85 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="absolute right-12 top-1/2 -translate-y-1/2"
         >
-          <div className="relative">
-            <LogoMark className="h-40 w-40 drop-shadow-[0_20px_60px_rgba(37,99,235,0.45)]" />
+          <div className="overflow-hidden rounded-2xl bg-white p-3 shadow-[0_20px_60px_-20px_rgba(37,99,235,0.55)] ring-1 ring-black/5">
+            <img src="/logo-brand.png" alt="Diop AI" className="h-28 w-auto object-contain" />
           </div>
         </motion.div>
 
         {/* content */}
         <div className="relative z-10 flex h-full flex-col justify-between p-12">
           <div className="flex items-center gap-2.5">
-            <LogoMark className="h-10 w-10" />
-            <div className="leading-tight">
-              <p className="text-[17px] font-semibold text-white">
-                Diop AI<span className="text-brand-gradient"> Research</span>
-              </p>
-              <p className="text-[11px] text-slate-400">AI Dental Research</p>
+            <div className="overflow-hidden rounded-xl bg-white px-2 py-1 shadow-sm ring-1 ring-black/5">
+              <img src="/logo-brand.png" alt="Diop AI — Dental Implant Prediction AI" className="h-7 w-auto object-contain" />
             </div>
           </div>
           <div className="max-w-md">
@@ -152,12 +147,8 @@ export function LoginView() {
           className="relative w-full max-w-sm"
         >
           <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <LogoMark className="h-10 w-10" />
-            <div className="leading-tight">
-              <p className="text-[17px] font-semibold text-foreground">
-                Diop AI Research
-              </p>
-              <p className="text-[11px] text-muted-foreground">AI Dental Research</p>
+            <div className="overflow-hidden rounded-xl bg-white px-2 py-1 shadow-sm ring-1 ring-black/5">
+              <img src="/logo-brand.png" alt="Diop AI — Dental Implant Prediction AI" className="h-7 w-auto object-contain" />
             </div>
           </div>
 
