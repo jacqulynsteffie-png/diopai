@@ -1,4 +1,4 @@
-# ImplantAI Research
+# Diop AI Research
 
 **AI-Powered Dental Implant Outcome Research Platform**
 
@@ -154,4 +154,4 @@ HTTPS-ready, environment-variable driven, secure.
 
 ---
 
-© ImplantAI Research. Research-use platform. Not a clinical diagnostic device.
+© Diop AI Research. Research-use platform. Not a clinical diagnostic device.

@@ -1,4 +1,4 @@
-// Core domain types for the ImplantAI Research platform.
+// Core domain types for the Diop AI Research platform.
 // IMPORTANT: This is a RESEARCH platform. All data is de-identified.
 // Fields not defined in the research protocol are marked as configurable
 // "To be defined in research protocol" and use the RESEARCH_PROTOCOL_TBD sentinel.

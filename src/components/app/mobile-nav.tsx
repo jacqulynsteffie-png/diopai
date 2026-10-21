@@ -92,7 +92,7 @@ export function MobileNav() {
                 <LogoMark className="h-8 w-8" />
                 <div className="leading-tight">
                   <SheetTitle className="text-[15px] font-semibold text-white">
-                    ImplantAI<span className="text-brand-gradient"> Research</span>
+                    Diop AI<span className="text-brand-gradient"> Research</span>
                   </SheetTitle>
                   <SheetDescription className="text-[10px] text-slate-400">
                     AI Dental Research

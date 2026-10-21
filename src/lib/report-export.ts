@@ -149,7 +149,7 @@ export async function downloadPDF(type: ReportType, cases: ResearchCase[]) {
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text("ImplantAI Research", margin, 30);
+  doc.text("Diop AI Research", margin, 30);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(148, 163, 184);

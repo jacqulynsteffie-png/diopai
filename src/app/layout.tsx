@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ImplantAI Research — AI-Powered Dental Implant Outcome Research Platform",
+  title: "Diop AI Research — AI-Powered Dental Implant Outcome Research Platform",
   description:
     "A retrospective research platform evaluating an AI-based predictive model for dental implant outcomes using preoperative CBCT-derived features.",
   keywords: [
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     "retrospective study",
     "implant outcomes",
   ],
-  authors: [{ name: "ImplantAI Research" }],
+  authors: [{ name: "Diop AI Research" }],
   icons: {
     icon: "/logo.svg",
   },

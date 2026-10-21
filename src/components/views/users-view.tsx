@@ -218,7 +218,7 @@ function AddUserDialog({ open, onClose, onAdd }: { open: boolean; onClose: () =>
             <Label htmlFor="u-email">Email</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input id="u-email" type="email" value={email} onChange={(e) => { setEmail(e.target.value); setErrors((x) => ({ ...x, email: undefined })); }} placeholder="researcher@implant-ai.research" className={cn("pl-9", errors.email && "border-destructive")} />
+              <Input id="u-email" type="email" value={email} onChange={(e) => { setEmail(e.target.value); setErrors((x) => ({ ...x, email: undefined })); }} placeholder="researcher@diop-ai.research" className={cn("pl-9", errors.email && "border-destructive")} />
             </div>
             {errors.email && <p className="text-[11px] text-destructive">{errors.email}</p>}
           </div>

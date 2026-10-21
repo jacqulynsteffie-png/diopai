@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 export function LoginView() {
   const { login } = useAppStore();
   const { toast } = useToast();
-  const [email, setEmail] = React.useState("a.researcher@implant-ai.research");
+  const [email, setEmail] = React.useState("a.researcher@diop-ai.research");
   const [password, setPassword] = React.useState("demo");
   const [show, setShow] = React.useState(false);
   const [remember, setRemember] = React.useState(true);
@@ -27,7 +27,7 @@ export function LoginView() {
       setLoading(false);
       login();
       toast({
-        title: "Welcome to ImplantAI Research",
+        title: "Welcome to Diop AI Research",
         description: "Authenticated as authorized research personnel.",
       });
     }, 700);
@@ -96,7 +96,7 @@ export function LoginView() {
             <LogoMark className="h-10 w-10" />
             <div className="leading-tight">
               <p className="text-[17px] font-semibold text-white">
-                ImplantAI<span className="text-brand-gradient"> Research</span>
+                Diop AI<span className="text-brand-gradient"> Research</span>
               </p>
               <p className="text-[11px] text-slate-400">AI Dental Research</p>
             </div>
@@ -155,7 +155,7 @@ export function LoginView() {
             <LogoMark className="h-10 w-10" />
             <div className="leading-tight">
               <p className="text-[17px] font-semibold text-foreground">
-                ImplantAI Research
+                Diop AI Research
               </p>
               <p className="text-[11px] text-muted-foreground">AI Dental Research</p>
             </div>
@@ -165,7 +165,7 @@ export function LoginView() {
             <Sparkles className="h-3 w-3" /> Authorized research access
           </span>
           <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
-            Welcome to ImplantAI Research
+            Welcome to Diop AI Research
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Secure access to the AI-powered dental implant research platform.

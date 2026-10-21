@@ -73,7 +73,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   currentUser: {
     name: "Dr. A. Researcher",
     role: "Admin",
-    email: "a.researcher@implant-ai.research",
+    email: "a.researcher@diop-ai.research",
   },
   login: () => set({ authenticated: true }),
   logout: () => set({ authenticated: false, view: "dashboard" }),

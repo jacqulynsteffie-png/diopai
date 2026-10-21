@@ -33,8 +33,8 @@ async function main() {
   await db.datasetRecord.deleteMany();
 
   // users
-  const admin = await db.user.create({ data: { name: "Dr. A. Researcher", email: "a.researcher@implant-ai.research", role: "Admin", status: "Active", lastLogin: daysAgo(0) } });
-  const researcher = await db.user.create({ data: { name: "Dr. B. Analyst", email: "b.analyst@implant-ai.research", role: "Researcher", status: "Active", lastLogin: daysAgo(1) } });
+  const admin = await db.user.create({ data: { name: "Dr. A. Researcher", email: "a.researcher@diop-ai.research", role: "Admin", status: "Active", lastLogin: daysAgo(0) } });
+  const researcher = await db.user.create({ data: { name: "Dr. B. Analyst", email: "b.analyst@diop-ai.research", role: "Researcher", status: "Active", lastLogin: daysAgo(1) } });
 
   // model versions
   await db.modelVersion.create({

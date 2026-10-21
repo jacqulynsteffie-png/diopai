@@ -1,4 +1,4 @@
-# Research Methodology — ImplantAI Research
+# Research Methodology — Diop AI Research
 
 > Evaluation of an Artificial Intelligence-Based Predictive Model for Dental Implant Outcomes Based on Preoperative CBCT-Derived Features: A Retrospective Study.
 

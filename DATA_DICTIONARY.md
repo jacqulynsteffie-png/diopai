@@ -1,4 +1,4 @@
-# Data Dictionary — ImplantAI Research
+# Data Dictionary — Diop AI Research
 
 All variables are **de-identified**. Fields not defined in the approved research protocol are marked *"To be defined in research protocol"* (TBD) and are configurable in Research Configuration.
 

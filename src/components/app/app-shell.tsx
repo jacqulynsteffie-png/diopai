@@ -72,7 +72,7 @@ export function AppShell() {
         <footer className="mt-auto border-t border-border/70 bg-card/40 px-4 py-4 pb-20 sm:px-6 lg:pb-4">
           <div className="mx-auto flex max-w-[1500px] flex-col items-center justify-between gap-2 text-[11px] text-muted-foreground sm:flex-row">
             <p>
-              ImplantAI Research · Retrospective study ·{" "}
+              Diop AI Research · Retrospective study ·{" "}
               <span className="text-amber-600 dark:text-amber-400">
                 DEMO MODE — Synthetic research data
               </span>

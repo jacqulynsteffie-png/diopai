@@ -1,4 +1,4 @@
-# Model Card — ImplantAI Research
+# Model Card — Diop AI Research
 
 > Research-use only. Metrics shown are **synthetic demo values**. Not validated clinical performance.
 

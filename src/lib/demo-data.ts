@@ -1,4 +1,4 @@
-// Synthetic DEMO data generator for ImplantAI Research.
+// Synthetic DEMO data generator for Diop AI Research.
 // IMPORTANT: All values here are SYNTHETIC and do NOT represent real clinical
 // performance. They exist only for UI development and demonstration.
 // A visible "DEMO MODE — Synthetic Research Data" banner is always shown when
@@ -466,7 +466,7 @@ export function generateDemoUsers(): UserRecord[] {
     {
       id: "u_1",
       name: "Dr. A. Researcher",
-      email: "a.researcher@implant-ai.research",
+      email: "a.researcher@diop-ai.research",
       role: "Admin",
       status: "Active",
       lastLogin: isoDaysAgo(0),
@@ -475,7 +475,7 @@ export function generateDemoUsers(): UserRecord[] {
     {
       id: "u_2",
       name: "Dr. B. Analyst",
-      email: "b.analyst@implant-ai.research",
+      email: "b.analyst@diop-ai.research",
       role: "Researcher",
       status: "Active",
       lastLogin: isoDaysAgo(1),
@@ -484,7 +484,7 @@ export function generateDemoUsers(): UserRecord[] {
     {
       id: "u_3",
       name: "Dr. C. Resident",
-      email: "c.resident@implant-ai.research",
+      email: "c.resident@diop-ai.research",
       role: "Researcher",
       status: "Active",
       lastLogin: isoDaysAgo(4),
@@ -493,7 +493,7 @@ export function generateDemoUsers(): UserRecord[] {
     {
       id: "u_4",
       name: "Dr. D. Supervisor",
-      email: "d.supervisor@implant-ai.research",
+      email: "d.supervisor@diop-ai.research",
       role: "Researcher",
       status: "Suspended",
       lastLogin: isoDaysAgo(30),

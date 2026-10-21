@@ -227,3 +227,25 @@ Verification (Agent Browser):
 Stage Summary:
 - Add User fully functional: validated form, audit-logged, appears in table + stats.
 - Bonus: per-row suspend/activate, role toggle, remove.
+
+---
+Task ID: rebrand-diop-ai + fix-signin + new-logo
+Agent: main (orchestrator)
+Task: Fix sign-in failure; rebrand "ImplantAI" → "Diop AI"; new attractive themed logo.
+
+Work Log:
+- SIGN-IN FIX: login code itself was correct (always calls login() after 700ms; no "Invalid credentials" text in codebase). Root cause was a stale dev server (earlier EADDRINUSE / duplicate instance) serving old build. Fix: pkill -9 next, rm -rf .next, clean restart. Verified sign-in → authed=true, dashboard renders, no console errors.
+- REBRAND: sed across src/ + prisma + docs: "ImplantAI Research"→"Diop AI Research", "ImplantAI"→"Diop AI", "implant-ai.research"→"diop-ai.research", "Implant AI"→"Diop AI". Verified: page title, login, sidebar wordmark, footer, study metadata, emails all rebranded; zero remaining "ImplantAI" refs.
+- NEW LOGO (logo.tsx + public/logo.svg): redesigned attractive themed mark — navy rounded tile w/ gradient border (blue→cyan→teal) + inner radial glow; a tooth/implant silhouette (incisor-root form) in cyan-white gradient; an AI neural network inside the tooth (5 nodes + connecting lines, center node in cyan); an implant-collar base platform line w/ end nodes. Combines dental implant + AI network + research base. Wordmark: "Diop AI Research" + "AI Dental Research".
+
+Verification (Agent Browser):
+- Login: title "Diop AI Research — AI-Powered Dental Implant Outcome Research Platform"; "Welcome to Diop AI Research"; no "ImplantAI".
+- Sign In click → authed=true, dashboard "Research Overview", toast "Welcome to Diop AI Research", no console errors.
+- Sidebar + footer show "Diop AI"; no old brand anywhere.
+- New logo mark (SVG 0 0 48 48) renders on login + sidebar.
+- Lint clean; dev server healthy (GET / 200).
+
+Stage Summary:
+- Sign-in works (clean server restart resolved stale build).
+- Fully rebranded to Diop AI Research across app + docs + emails.
+- New attractive dental+AI themed logo (tooth + neural network + implant collar).
