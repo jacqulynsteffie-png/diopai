@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
-import { DemoBanner } from "./demo-banner";
 import { CommandPalette } from "./command-palette";
 import { MobileNav } from "./mobile-nav";
 import { LoginView } from "@/components/views/login-view";
@@ -53,7 +52,6 @@ export function AppShell() {
     <div className="flex min-h-screen bg-background">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <DemoBanner />
         <Topbar />
         <main className="flex-1 overflow-x-clip">
           <AnimatePresence mode="wait">
@@ -71,15 +69,8 @@ export function AppShell() {
         </main>
         <footer className="mt-auto border-t border-border/70 bg-card/40 px-4 py-4 pb-20 sm:px-6 lg:pb-4">
           <div className="mx-auto flex max-w-[1500px] flex-col items-center justify-between gap-2 text-[11px] text-muted-foreground sm:flex-row">
-            <p>
-              Diop AI Research · Retrospective study ·{" "}
-              <span className="text-amber-600 dark:text-amber-400">
-                DEMO MODE — Synthetic research data
-              </span>
-            </p>
-            <p>
-              Research-use only. Not a clinical diagnostic device. v1.0
-            </p>
+            <p>Diop AI Research · Retrospective study</p>
+            <p>Research-use only. Not a clinical diagnostic device. v1.0</p>
           </div>
         </footer>
       </div>

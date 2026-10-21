@@ -355,7 +355,7 @@ export function DashboardView() {
           <CardHeader className="flex-row items-center justify-between">
             <div>
               <CardTitle>Model Performance</CardTitle>
-              <CardDescription>{activeModel?.algorithm} {activeModel?.version} · training curve (demo)</CardDescription>
+              <CardDescription>{activeModel?.algorithm} {activeModel?.version} · training curve</CardDescription>
             </div>
             <Button variant="ghost" size="sm" onClick={() => setView("model-performance")}>
               View details <ChevronRight className="h-4 w-4" />
@@ -439,7 +439,7 @@ export function DashboardView() {
           </div>
           <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <AlertCircle className="h-3.5 w-3.5" />
-            Performance values are synthetic demo metrics. Not validated clinical performance.
+            Performance values are research-use metrics. Not validated clinical performance.
           </p>
         </CardContent>
       </Card>

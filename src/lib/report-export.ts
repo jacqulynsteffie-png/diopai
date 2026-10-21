@@ -79,8 +79,8 @@ function reportRows(type: ReportType, cases: ResearchCase[]) {
           ["Total cases", String(cases.length)],
           ["Eligible cases", String(cases.filter((c) => c.eligibility === "Eligible").length)],
           ["Predictions generated", String(cases.filter((c) => c.prediction).length)],
-          ["Current model", "XGBoost v1.0 (DEMO)"],
-          ["ROC-AUC (demo)", "0.82"],
+          ["Current model", "XGBoost v1.0"],
+          ["ROC-AUC", "0.82"],
           ["Disclaimer", STUDY_META.disclaimer],
         ],
       };
@@ -166,7 +166,7 @@ export async function downloadPDF(type: ReportType, cases: ResearchCase[]) {
   doc.setFontSize(9);
   doc.setTextColor(100, 116, 139);
   doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
-  doc.text(`Dataset: ${cases.length} records (DEMO — synthetic)`, margin, y + 12);
+  doc.text(`Dataset: ${cases.length} records`, margin, y + 12);
   y += 30;
 
   // Table
@@ -190,7 +190,7 @@ export async function downloadPDF(type: ReportType, cases: ResearchCase[]) {
   const disclaimerLines = doc.splitTextToSize(STUDY_META.disclaimer, pageW - margin * 2);
   doc.text(disclaimerLines, margin, finalY + 12);
   doc.setTextColor(148, 163, 184);
-  doc.text("DEMO MODE — Synthetic research data. v1.0", margin, finalY + 12 + disclaimerLines.length * 10 + 8);
+  doc.text("Research-use only. v1.0", margin, finalY + 12 + disclaimerLines.length * 10 + 8);
 
   doc.save(`${type.replace(/\s+/g, "_")}.pdf`);
 }

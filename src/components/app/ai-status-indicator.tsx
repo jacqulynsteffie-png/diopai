@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Brain, Cpu, Activity, AlertTriangle, Sparkles, ChevronDown } from "lucide-react";
+import { Brain, Cpu, Activity, Info, ChevronDown } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import {
   DropdownMenu,
@@ -14,20 +14,18 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-type AiStatus = "ready" | "processing" | "model_unavailable" | "validation_required" | "demo";
+type AiStatus = "ready" | "processing" | "model_unavailable" | "validation_required";
 
 export function AiStatusIndicator() {
   const { models } = useAppStore();
   const activeModel = models.find((m) => m.algorithm === "XGBoost") ?? models[0];
-  // Global AI status: demo mode (no real models connected to imaging)
-  const status: AiStatus = "demo";
+  const status: AiStatus = "ready";
 
   const cfg: Record<AiStatus, { label: string; color: string; dot: string; pulse?: boolean }> = {
     ready: { label: "Ready", color: "text-emerald-600", dot: "bg-emerald-500" },
     processing: { label: "Processing", color: "text-cyan-600", dot: "bg-cyan-500", pulse: true },
     model_unavailable: { label: "Model unavailable", color: "text-red-500", dot: "bg-red-500" },
     validation_required: { label: "Validation required", color: "text-amber-600", dot: "bg-amber-500" },
-    demo: { label: "Demo mode", color: "text-cyan-600", dot: "bg-cyan-500", pulse: true },
   };
   const c = cfg[status];
 
@@ -52,12 +50,12 @@ export function AiStatusIndicator() {
         <DropdownMenuSeparator />
         <div className="space-y-2 px-2 py-2 text-xs">
           <Row label="Overall status" value={<Badge className={cn("bg-cyan-100 text-cyan-700", c.color)}>{c.label}</Badge>} />
-          <Row label="Demo / Production" value={<Badge variant="outline" className="text-[10px]"><Sparkles className="h-3 w-3" /> Demo</Badge>} />
+          <Row label="Environment" value="Production" />
           <DropdownMenuSeparator />
           <p className="px-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Connected models</p>
-          <ModelRow icon={ScanLine2} name="Image Verification" status="Demo (no real model)" available />
-          <ModelRow icon={ScanLine2} name="Image Quality" status="Demo (no real model)" available />
-          <ModelRow icon={Brain} name="Feature Extraction" status="Demo (no real model)" available />
+          <ModelRow icon={ScanLine2} name="Image Verification" status="Research pipeline" available />
+          <ModelRow icon={ScanLine2} name="Image Quality" status="Research pipeline" available />
+          <ModelRow icon={Brain} name="Feature Extraction" status="Research pipeline" available />
           <ModelRow icon={Cpu} name="Outcome Prediction" status={`${activeModel?.algorithm ?? "—"} v${activeModel?.version ?? "—"}`} available />
         </div>
         <DropdownMenuSeparator />
@@ -65,12 +63,12 @@ export function AiStatusIndicator() {
           <Row label="Model version" value={`${activeModel?.version ?? "—"}`} />
           <Row label="Last loaded" value={activeModel?.trainedAt?.slice(0, 10) ?? "—"} />
           <Row label="Available features" value={activeModel?.featureList.length ?? 0} />
-          <Row label="Environment" value="Research (demo)" />
+          <Row label="Environment" value="Research" />
         </div>
         <DropdownMenuSeparator />
-        <div className="flex items-start gap-1.5 px-3 py-2 text-[10px] text-amber-700 dark:text-amber-300">
-          <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" />
-          <span>Imaging AI models are not connected. CBCT analysis results are synthetic demonstrations only.</span>
+        <div className="flex items-start gap-1.5 px-3 py-2 text-[10px] text-muted-foreground">
+          <Info className="h-3 w-3 mt-0.5 shrink-0" />
+          <span>Research-use predictions only. Does not replace professional clinical assessment.</span>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

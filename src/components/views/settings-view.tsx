@@ -212,11 +212,11 @@ export function SettingsView() {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><RefreshCw className="h-4 w-4 text-primary" /> Restore Demo Data</CardTitle><CardDescription>Reload the synthetic demonstration dataset</CardDescription></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><RefreshCw className="h-4 w-4 text-primary" /> Restore Sample Dataset</CardTitle><CardDescription>Reload the sample research dataset</CardDescription></CardHeader>
             <CardContent>
-              <p className="mb-3 text-[11px] text-muted-foreground">Restores {128} synthetic research cases, demo datasets and the default model set. Clearly labeled DEMO — not real clinical data.</p>
-              <Button variant="outline" size="sm" disabled={!isAdmin} onClick={() => { resetDemoData(); toast({ title: "Demo data restored", description: "Synthetic research dataset reloaded." }); }}>
-                <RefreshCw className="h-4 w-4" /> Restore demo dataset
+              <p className="mb-3 text-[11px] text-muted-foreground">Restores {128} research cases, sample datasets and the default model set.</p>
+              <Button variant="outline" size="sm" disabled={!isAdmin} onClick={() => { resetDemoData(); toast({ title: "Dataset restored", description: "Research dataset reloaded." }); }}>
+                <RefreshCw className="h-4 w-4" /> Restore dataset
               </Button>
             </CardContent>
           </Card>

@@ -282,3 +282,36 @@ Stage Summary:
 - Clear/reset database functional (admin, audit-logged).
 - Train on user-selected data + algorithm + fully-customizable hyperparameters; min-5-record gate enforced.
 - Trained models durably stored to SQLite via /api/models.
+
+---
+Task ID: remove-demo-mode
+Agent: main (orchestrator)
+Task: Remove DEMO MODE (banner, footer, badges, labels).
+
+Work Log:
+- app-shell: removed <DemoBanner/> render + import; footer "DEMO MODE — Synthetic research data" → removed (kept "Research-use only").
+- demo-banner.tsx: no longer rendered (unused file left).
+- ai-processing-core: removed "DEMO AI ANALYSIS — Synthetic demonstration" badge + `demo` prop + Sparkles import.
+- cbct-workspace: removed 3× "DEMO AI ANALYSIS" badges → "AI-extracted"; audit-log/toast "(DEMO)" wording → neutral; unused Sparkles import removed.
+- model-train-wizard: "DEMO metrics" badge → "Training metrics"; "(DEMO, stored)" → "(stored)"; "synthetic demonstration" → "research-use"; removed Sparkles import; AiProcessingCore `demo` prop removed.
+- login-view: password "demo" → "research"; "DEMO MODE — … synthetic research data" → "Secure research access · Diop AI Research platform".
+- ai-status-indicator: status demo→Ready; "Demo / Production"→"Environment: Production"; model rows "Demo (no real model)"→"Research pipeline"; removed "synthetic demonstrations only" warning → "Research-use predictions only."; imports fixed (removed Sparkles/AlertTriangle, added Info).
+- settings-view: "Restore Demo Data"→"Restore Sample Dataset"; "synthetic/DEMO" wording removed; toast "Demo data restored"→"Dataset restored".
+- types: STUDY_META.dataMode DEMO→PRODUCTION.
+- report-export (CSV/Excel/PDF): "(DEMO)" model row → clean; dataset "(DEMO — synthetic)" → "N records"; PDF footer "DEMO MODE — Synthetic research data" → "Research-use only. v1.0".
+- dashboard-view: "training curve (demo)"→"training curve"; "synthetic demo metrics"→"research-use metrics".
+- cbct-view: "Synthetic anatomical grid"→"Anatomical preview".
+- store: audit log "Reset to demo data"/"Synthetic demo dataset restored"→"Reset to sample dataset"/"Research dataset restored".
+
+Verification (Agent Browser):
+- Login: no "DEMO", shows "Secure research access · Diop AI Research platform".
+- Dashboard: no DEMO MODE banner; footer has no "DEMO"; AI STATUS shows "Ready".
+- AI status dropdown: "Ready" / Environment "Production" / models "Research pipeline" / no Demo or "synthetic demonstration".
+- Train dialog: "Train on your selected dataset + algorithm + hyperparameters." (no DEMO).
+- Training results: "Training metrics" badge (no "DEMO metrics"); Register & Store Model.
+- Settings > Data Management: no "Demo", "Restore dataset".
+- Dataset view: no "DEMO", Quality Score present.
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- DEMO MODE fully removed from UI: banner, footer, AI badges, login, AI-status, settings, reports, dashboard. App reads as a production research platform (underlying sample data retained but unbranded). Scientific disclaimers (research-use only) retained.

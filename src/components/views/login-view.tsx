@@ -15,7 +15,7 @@ export function LoginView() {
   const { login } = useAppStore();
   const { toast } = useToast();
   const [email, setEmail] = React.useState("a.researcher@diop-ai.research");
-  const [password, setPassword] = React.useState("demo");
+  const [password, setPassword] = React.useState("research");
   const [show, setShow] = React.useState(false);
   const [remember, setRemember] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
@@ -238,7 +238,7 @@ export function LoginView() {
             <span>Authorized research personnel only. All access is audit-logged.</span>
           </div>
           <p className="mt-4 text-center text-[11px] text-muted-foreground">
-            DEMO MODE — Use the pre-filled credentials to explore synthetic research data.
+            Secure research access · Diop AI Research platform
           </p>
         </motion.div>
       </div>

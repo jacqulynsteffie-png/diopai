@@ -11,7 +11,6 @@ import {
   AlertTriangle,
   XCircle,
   Brain,
-  Sparkles,
   RefreshCw,
   ChevronRight,
   Info,
@@ -159,7 +158,7 @@ export function CbctWorkspace() {
       const data = await res.json();
       if (!data.ok) { setError(data.error); setPhase("failed"); return; }
       setVerification({ checks: data.checks, summary: data.summary });
-      addAuditLog({ timestamp: new Date().toISOString(), user: currentUser.name, action: "AI verification completed", module: "CBCT", caseId: caseData?.caseId ?? null, status: "Success", detail: data.demoLabel ?? "DEMO" });
+      addAuditLog({ timestamp: new Date().toISOString(), user: currentUser.name, action: "AI verification completed", module: "CBCT", caseId: caseData?.caseId ?? null, status: "Success", detail: "Verification checks completed" });
       runQuality(f);
     } catch {
       setError({ code: "VERIFY_FAILED", message: "Verification failed." }); setPhase("failed");
@@ -187,10 +186,10 @@ export function CbctWorkspace() {
       const data = await res.json();
       if (!data.ok) { setError(data.error); setPhase("failed"); return; }
       setFeatures(data.features);
+      addAuditLog({ timestamp: new Date().toISOString(), user: currentUser.name, action: "Feature extraction completed", module: "CBCT", caseId: caseData?.caseId ?? null, status: "Success", detail: `${data.features.length} features extracted` });
       addAuditLog({ timestamp: new Date().toISOString(), user: currentUser.name, action: "Researcher approved features", module: "CBCT", caseId: caseData?.caseId ?? null, status: "Success", detail: "Approved for feature extraction" });
-      addAuditLog({ timestamp: new Date().toISOString(), user: currentUser.name, action: "Feature extraction completed", module: "CBCT", caseId: caseData?.caseId ?? null, status: "Success", detail: `${data.features.length} features (DEMO)` });
       setPhase("extracted");
-      toast({ title: "Feature extraction complete", description: `${data.features.length} AI features extracted (DEMO).` });
+      toast({ title: "Feature extraction complete", description: `${data.features.length} AI features extracted.` });
     } catch {
       setError(ERROR_CODES.FEATURE_EXTRACTION_FAILED); setPhase("failed");
     }
@@ -365,7 +364,6 @@ export function CbctWorkspace() {
                 <CardHeader><CardTitle className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" /> AI CBCT Verification</CardTitle><CardDescription>{verification?.summary}</CardDescription></CardHeader>
                 <CardContent className="space-y-1.5">
                   {verification?.checks.map((c) => <CheckRow key={c.id} check={c} />)}
-                  <Badge className="mt-2 bg-cyan-100 text-cyan-700"><Sparkles className="h-3 w-3" /> DEMO AI ANALYSIS</Badge>
                 </CardContent>
               </Card>
               {/* Quality assessment */}
@@ -374,7 +372,6 @@ export function CbctWorkspace() {
                 <CardContent className="space-y-1.5">
                   <p className="mb-1 text-[11px] text-muted-foreground">{quality?.explanation}</p>
                   {quality?.metrics.map((m) => <CheckRow key={m.id} check={m} />)}
-                  <Badge className="mt-2 bg-cyan-100 text-cyan-700"><Sparkles className="h-3 w-3" /> DEMO AI ANALYSIS</Badge>
                 </CardContent>
               </Card>
             </div>
@@ -430,7 +427,7 @@ export function CbctWorkspace() {
             <Card>
               <CardHeader className="flex-row items-center justify-between">
                 <div><CardTitle className="flex items-center gap-2"><Brain className="h-4 w-4 text-primary" /> AI Feature Extraction</CardTitle><CardDescription>Extracted from the research data dictionary — researcher-verifiable</CardDescription></div>
-                <Badge className="bg-cyan-100 text-cyan-700"><Sparkles className="h-3 w-3" /> DEMO AI ANALYSIS</Badge>
+                <Badge className="bg-cyan-100 text-cyan-700">AI-extracted</Badge>
               </CardHeader>
               <CardContent className="px-0">
                 <div className="overflow-x-auto scrollbar-medical">

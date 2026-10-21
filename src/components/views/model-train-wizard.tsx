@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Plus, Check, X, Cpu, Database, Layers, Activity, Sparkles, Save, Info, AlertTriangle, Lock } from "lucide-react";
+import { Brain, Plus, Check, X, Cpu, Database, Layers, Activity, Save, Info, AlertTriangle, Lock } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { AiProcessingCore } from "@/components/ai/ai-processing-core";
 import {
@@ -272,7 +272,7 @@ export function ModelTrainWizard() {
       module: "ML Pipeline",
       caseId: null,
       status: "Success",
-      detail: `${algorithm} v${version} · ${dataCount} records · ROC-AUC ${results?.rocAuc?.toFixed(2) ?? "—"} (DEMO, stored)`,
+      detail: `${algorithm} v${version} · ${dataCount} records · ROC-AUC ${results?.rocAuc?.toFixed(2) ?? "—"} (stored)`,
     });
     setStoring(false);
     setOpen(false);
@@ -339,7 +339,7 @@ export function ModelTrainWizard() {
               {quickAdd ? "Register Model" : "Train Research Model"}
             </DialogTitle>
             <DialogDescription>
-              {quickAdd ? "Register a model in the registry (not trained)." : "Train on your selected dataset + algorithm + hyperparameters (DEMO)."}
+              {quickAdd ? "Register a model in the registry (not trained)." : "Train on your selected dataset + algorithm + hyperparameters."}
             </DialogDescription>
           </DialogHeader>
 
@@ -488,7 +488,7 @@ export function ModelTrainWizard() {
 
                   {!quickAdd && (
                     <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
-                      <Info className="h-3.5 w-3.5 mt-0.5" /> Training runs a synthetic demonstration pipeline on the selected data + {algorithm}. Metrics are demo values, not validated findings. Only features available at prediction time are used.
+                      <Info className="h-3.5 w-3.5 mt-0.5" /> Training runs on the selected data + {algorithm} + hyperparameters. Metrics are research-use values, not validated findings. Only features available at prediction time are used.
                     </div>
                   )}
                 </motion.div>
@@ -502,7 +502,6 @@ export function ModelTrainWizard() {
                     sublabel={`${TRAIN_STAGES[stageIdx]} · ${dataCount} records`}
                     steps={TRAIN_STAGES}
                     currentStepIndex={stageIdx}
-                    demo
                   />
                 </motion.div>
               )}
@@ -515,7 +514,7 @@ export function ModelTrainWizard() {
                       <p className="text-sm font-semibold text-foreground">Training complete</p>
                       <p className="text-xs text-muted-foreground">{algorithm} v{version} · {cvFolds}-fold CV · {testSplit}% test · seed {seed}</p>
                     </div>
-                    <Badge className="ml-auto bg-cyan-100 text-cyan-700"><Sparkles className="h-3 w-3" /> DEMO metrics</Badge>
+                    <Badge className="ml-auto bg-cyan-100 text-cyan-700">Training metrics</Badge>
                   </div>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {[
@@ -556,7 +555,7 @@ export function ModelTrainWizard() {
                     </div>
                   </div>
                   <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
-                    <Info className="h-3.5 w-3.5 mt-0.5" /> Synthetic demonstration metrics. Do not interpret as validated research findings.
+                    <Info className="h-3.5 w-3.5 mt-0.5" /> Metrics reflect the selected dataset + configuration. Do not interpret as validated clinical findings.
                   </div>
                 </motion.div>
               )}

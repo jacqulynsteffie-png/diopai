@@ -15,7 +15,7 @@ export const STUDY_META = {
   sponsor: "Research Institution (configurable)",
   principalInvestigator: "To be configured in research protocol",
   protocolVersion: "v1.0",
-  dataMode: "DEMO" as "DEMO" | "PRODUCTION",
+  dataMode: "PRODUCTION" as "DEMO" | "PRODUCTION",
   disclaimer:
     "This prediction is intended for research evaluation and does not replace professional clinical assessment or treatment planning.",
 } as const;

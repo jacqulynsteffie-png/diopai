@@ -159,7 +159,7 @@ export function CbctView() {
                     <div className="text-center">
                       <ScanLine className="mx-auto h-12 w-12 text-cyan-300/70" />
                       <p className="mt-2 text-xs text-slate-300">CBCT preview placeholder</p>
-                      <p className="text-[10px] text-slate-500">Synthetic anatomical grid</p>
+                      <p className="text-[10px] text-slate-500">Anatomical preview</p>
                     </div>
                   </div>
                 </div>
