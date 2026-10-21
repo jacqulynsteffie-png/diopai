@@ -499,3 +499,22 @@ Verification (Agent Browser):
 
 Stage Summary:
 - Persistence confirmed working end-to-end: cases, datasets, and trained models all store to localStorage (Zustand persist) + show constantly across the Cases view, Model Registry, and Dashboard (Current Model) — surviving reloads. The "store correctly + show constantly" requirement is met.
+
+---
+Task ID: fix-case-not-visible (persistence reliability)
+Agent: main (orchestrator)
+Task: "1 case uploaded but not visible" — make persistence reliable so added data always shows.
+
+Work Log:
+- Diagnosis: persistence WAS configured (Zustand persist + localStorage) and cases showed in tests, but used `skipHydration: true` + a module-level `rehydrate()` call — which can have a TIMING GAP in Next.js (persisted state may not load before first render in some module-eval orders), causing intermittent "not visible after reload".
+- Fix: switched to SYNCHRONOUS auto-hydration — removed `skipHydration: true` and the module-level `rehydrate()` block. The persist middleware now auto-hydrates from localStorage synchronously during store creation on the client, so the persisted state is available from the very first client render. Safe because auth is NOT persisted (SSR + first client render both show LoginView → no hydration mismatch); persisted data only renders after login.
+
+Verification (Agent Browser):
+- Cleared localStorage → fresh zero state.
+- Added case RC-4532 → inStorage:true → visibleNow:true (immediately visible in Cases view).
+- Reloaded → signed in → case RC-4532 STILL visible (persists:true); no hydration/console errors.
+- Dashboard count reflects the saved case.
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- Persistence made reliable via synchronous auto-hydration. Added cases (and datasets/models) store to localStorage and are visible immediately + survive reloads constantly.

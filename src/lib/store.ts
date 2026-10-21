@@ -168,7 +168,8 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "diop-ai-research-v1",
-      // persist only durable data + sidebar; never persist auth/session/view (avoids SSR hydration mismatch + requires login each session)
+      // persist only durable data + sidebar; never persist auth/session/view
+      // (auth stays false on SSR + first client render → LoginView matches SSR → no hydration mismatch)
       partialize: (s) => ({
         cases: s.cases,
         datasets: s.datasets,
@@ -178,14 +179,9 @@ export const useAppStore = create<AppState>()(
         users: s.users,
         sidebarCollapsed: s.sidebarCollapsed,
       }),
-      skipHydration: true,
     }
   )
 );
-// rehydrate on the client after mount
-if (typeof window !== "undefined") {
-  useAppStore.persist.rehydrate();
-}
 
 // helper selectors
 export function useSelectedCase() {
