@@ -89,7 +89,7 @@ export function MobileNav() {
           <SheetHeader className="border-b border-white/5 px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <LogoMark className="h-8 w-8" />
+                <LogoMark className="h-8 w-8" forceLight />
                 <div className="leading-tight">
                   <SheetTitle className="text-[15px] font-semibold text-white">
                     Diop AI<span className="text-brand-gradient"> Research</span>

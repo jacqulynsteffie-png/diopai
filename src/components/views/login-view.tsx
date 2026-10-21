@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff, Lock, Mail, ShieldCheck, Sparkles, ArrowRight, Activity, ScanLine } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { STUDY_META } from "@/lib/types";
+import { BrandLogo } from "@/components/app/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -82,19 +83,15 @@ export function LoginView() {
           initial={{ opacity: 0, scale: 0.85 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="absolute right-12 top-1/2 -translate-y-1/2"
+          className="absolute right-10 top-1/2 -translate-y-1/2"
         >
-          <div className="overflow-hidden rounded-2xl bg-white p-3 shadow-[0_20px_60px_-20px_rgba(37,99,235,0.55)] ring-1 ring-black/5">
-            <img src="/logo-brand.png" alt="Diop AI" className="h-28 w-auto object-contain" />
-          </div>
+          <img src="/logo-brand-light.png" alt="Diop AI" className="h-36 w-auto max-w-[320px] object-contain drop-shadow-[0_20px_60px_rgba(37,99,235,0.35)]" />
         </motion.div>
 
         {/* content */}
         <div className="relative z-10 flex h-full flex-col justify-between p-12">
-          <div className="flex items-center gap-2.5">
-            <div className="overflow-hidden rounded-xl bg-white px-2 py-1 shadow-sm ring-1 ring-black/5">
-              <img src="/logo-brand.png" alt="Diop AI — Dental Implant Prediction AI" className="h-7 w-auto object-contain" />
-            </div>
+          <div className="flex items-center">
+            <img src="/logo-brand-light.png" alt="Diop AI — Dental Implant Prediction AI" className="h-9 w-auto max-w-[180px] object-contain" />
           </div>
           <div className="max-w-md">
             <motion.h2
@@ -147,9 +144,7 @@ export function LoginView() {
           className="relative w-full max-w-sm"
         >
           <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <div className="overflow-hidden rounded-xl bg-white px-2 py-1 shadow-sm ring-1 ring-black/5">
-              <img src="/logo-brand.png" alt="Diop AI — Dental Implant Prediction AI" className="h-7 w-auto object-contain" />
-            </div>
+            <BrandLogo className="h-8 w-auto max-w-[160px]" />
           </div>
 
           <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-brand-gradient-soft px-3 py-1 text-[11px] font-medium text-primary">

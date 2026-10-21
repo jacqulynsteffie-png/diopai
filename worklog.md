@@ -342,3 +342,32 @@ Verification (Agent Browser):
 
 Stage Summary:
 - User's uploaded logo now used app-wide: sidebar (full brand), collapsed sidebar (icon), login showcase+header, topbar mobile (icon), favicon/apple-touch-icon. Dark-text logo rendered on white cards so it reads on the navy surfaces.
+
+---
+Task ID: logo-big-match-bg
+Agent: main (orchestrator)
+Task: Make logo big + match the background (remove white cards).
+
+Work Log:
+- Sampled logo pixels (PIL): tooth is LIGHT CYAN #d8f0f0 (not off-white), text dark navy #183048, implant metallic grey, bg white. So white-removal threshold 238 keeps the cyan tooth.
+- Generated light versions for dark surfaces (PIL to_light_darkbg): white bg→transparent, dark pixels (brightness<135)→near-white #f0f8fc, keep cyan tooth + grey implant.
+  • public/logo-brand-light.png (full brand, transparent, light elements)
+  • public/logo-icon-light.png (square icon, transparent, light)
+  VLM-verified: tooth + "DIOP AI" text visible on dark.
+- logo.tsx rewritten:
+  • Logo (sidebar, always dark navy) = light brand logo, BIG (h-11=44px), transparent, NO card. Collapsed = light icon (h-9), NO card.
+  • LogoMark = theme-aware via CSS (dark:hidden / hidden dark:block): dark icon on light theme, light icon on dark theme; forceLight prop for always-dark surfaces.
+  • BrandLogo = theme-aware full brand logo (for theme-dependent surfaces).
+- mobile-nav drawer (always dark): LogoMark forceLight (light icon, no card).
+- login left panel (always dark): light brand logo BIG (h-36 showcase, h-9 header), NO card, drop-shadow. Right mobile brand: BrandLogo theme-aware, NO card.
+- favicon/apple-icon stay /logo-icon.png.
+
+Verification (Agent Browser):
+- Login: light brand logo (no white card) — whiteCard:false, showcaseLight:true.
+- Sidebar: light brand logo, rendered 44px tall (big), NO white card (hasWhiteCard:false).
+- Collapsed sidebar: light icon 36px, no card.
+- Dark mode: sidebar still light logo; topbar shows light icon (theme-aware).
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- Logo now BIG on the page and matches the background: light/transparent version on the dark navy sidebar + login (no white box); theme-aware mark on the topbar/drawer; cyan tooth preserved.
