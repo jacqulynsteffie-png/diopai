@@ -15,7 +15,6 @@ import {
   Save,
   Brain,
   Lock,
-  X,
   Info,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
@@ -266,16 +265,11 @@ export function NewCaseWizard() {
       <DialogContent className="max-h-[100dvh] w-[calc(100%-1rem)] max-w-4xl sm:max-w-4xl gap-0 overflow-hidden p-0 sm:rounded-2xl [&>button]:right-3 [&>button]:top-3">
         {/* Header / step indicator */}
         <div className="relative min-w-0 overflow-hidden border-b border-border bg-brand-gradient-soft px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle className="text-base">New Research Case</DialogTitle>
-              <DialogDescription className="text-xs">
-                Create a de-identified retrospective research case.
-              </DialogDescription>
-            </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={close}>
-              <X className="h-4 w-4" />
-            </Button>
+          <div>
+            <DialogTitle className="text-base">New Research Case</DialogTitle>
+            <DialogDescription className="text-xs">
+              Create a de-identified retrospective research case.
+            </DialogDescription>
           </div>
           {/* Step indicator */}
           <div className="mt-4 flex min-w-0 items-center gap-1 overflow-x-auto scrollbar-medical">

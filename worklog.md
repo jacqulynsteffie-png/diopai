@@ -466,3 +466,19 @@ Verification (Agent Browser + VLM):
 Stage Summary:
 - New Case wizard: alignment fixed (min-w-0 on grid children), Next button visible, all 6 steps fit, no overlap/clipping.
 - App starts from zero: empty data by default + persisted (user-added data + cleared state survive reloads); dashboard shows real zero stats; empty states render cleanly; Clear Research Data resets to zero (persisted).
+
+---
+Task ID: fix-double-close
+Agent: main (orchestrator)
+Task: Fix the "double cross" (two close buttons) in the New Case wizard dialog.
+
+Work Log:
+- Root cause: the base shadcn DialogContent renders a default close (X) button (top-right) AND the wizard header had a custom `<Button onClick={close}><X/></Button>` → two close buttons overlapping in the top-right.
+- Fix: removed the custom close button from the new-case-wizard header (kept the default shadcn close, positioned via `[&>button]:right-3 [&>button]:top-3`); removed the now-unused `X` import.
+
+Verification (Agent Browser + VLM):
+- Opened New Case wizard → VLM: "exactly ONE close (X) button visible in the top-right."
+- Lint clean; no errors.
+
+Stage Summary:
+- Double close button removed; wizard now has a single X close (top-right).
