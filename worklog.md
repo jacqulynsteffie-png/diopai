@@ -371,3 +371,28 @@ Verification (Agent Browser):
 
 Stage Summary:
 - Logo now BIG on the page and matches the background: light/transparent version on the dark navy sidebar + login (no white box); theme-aware mark on the topbar/drawer; cyan tooth preserved.
+
+---
+Task ID: fix-logo-bursting
+Agent: main (orchestrator)
+Task: Fix the "bursting/broken" logo rendering.
+
+Work Log:
+- Diagnosed: previous light-logo used crude per-pixel transform (white>238→transparent + dark<135→white) which created HARD COLOR EDGES and kept the anti-aliased mid-tone fringe as original grey → noisy halo / "bursting" artifacts around tooth + text.
+- New approach: smooth alpha-matte white silhouette (PIL smooth_white_silhouette):
+  • alpha = smooth ramp based on MIN channel (bg min~248→0; content min low→255; ramp 208–242). Anti-aliased fringe → partial alpha (smooth edges).
+  • ALL content pixels → pure white (no color edges possible → no bursting).
+  Result: clean white tooth + implant + "DIOP AI" text on transparent bg, sharp smooth edges.
+- Regenerated public/logo-brand-light.png (1024×559) + logo-icon-light.png (512×512).
+- logo.tsx unchanged (already wired to use light versions, big, no card).
+
+Verification (Agent Browser + VLM):
+- logo-brand-light.png asset: VLM "Clean. Edges sharp and smooth, no blockiness/noise/halo."
+- Login screenshot: VLM "Clean/sharp".
+- Sidebar screenshot: VLM "clean and sharp — clear white tooth icon + 'DIOP AI' text".
+- Sidebar logo renders 44px (big), matching navy, no white card.
+- Collapsed sidebar icon 36px.
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- "Bursting" logo fixed: replaced crude threshold recolor with smooth alpha-matte white silhouette. Logo now clean, sharp, big, and matches the dark navy background.
