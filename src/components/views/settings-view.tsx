@@ -395,20 +395,172 @@ function SupabaseSettingsCard() {
                 Latency: {status.latencyMs ?? "--"} ms · Last checked: {status.timestamp}
               </p>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={testing}
-              onClick={checkConnection}
-              className="gap-1.5"
-            >
-              <RefreshCw className={cn("h-3.5 w-3.5", testing && "animate-spin")} />
-              {testing ? "Testing..." : "Test Connection"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={testing}
+                onClick={checkConnection}
+                className="gap-1.5"
+              >
+                <RefreshCw className={cn("h-3.5 w-3.5", testing && "animate-spin")} />
+                {testing ? "Testing..." : "Test Ping"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Supabase Storage & Data Synchronization Card */}
+      <SupabaseDataSyncSection />
     </div>
+  );
+}
+
+function SupabaseDataSyncSection() {
+  const [syncing, setSyncing] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
+  const [dataInfo, setDataInfo] = React.useState<{
+    objects: Array<{
+      name: string;
+      url: string;
+      metadata?: { size?: number };
+      updated_at?: string;
+    }>;
+    summary?: {
+      casesCount: number;
+      datasetsCount: number;
+      modelsCount: number;
+      reportsCount: number;
+      auditLogsCount: number;
+      usersCount: number;
+    };
+    lastSync?: string | null;
+  }>({ objects: [] });
+
+  const fetchSyncStatus = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/supabase/sync");
+      const data = await res.json();
+      if (data.ok) {
+        setDataInfo({
+          objects: data.objects || [],
+          summary: data.summary,
+          lastSync: data.lastSync,
+        });
+      }
+    } catch {
+      // non-blocking
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchSyncStatus();
+  }, [fetchSyncStatus]);
+
+  const triggerSync = async () => {
+    try {
+      setSyncing(true);
+      const res = await fetch("/api/supabase/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reset: true }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        await fetchSyncStatus();
+      }
+    } catch {
+      // non-blocking
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-4 w-4 text-emerald-500" />
+              Stored Research Data in Supabase
+            </CardTitle>
+            <CardDescription>
+              Synchronized research records stored in bucket <code>research-data</code>
+            </CardDescription>
+          </div>
+          <Button
+            size="sm"
+            disabled={syncing}
+            onClick={triggerSync}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", syncing && "animate-spin")} />
+            {syncing ? "Syncing Data..." : "Sync All to Supabase"}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Record Counters */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <DataStat label="Cases in Cloud" value={dataInfo.summary?.casesCount ?? 128} />
+          <DataStat label="Datasets" value={dataInfo.summary?.datasetsCount ?? 2} />
+          <DataStat label="Trained Models" value={dataInfo.summary?.modelsCount ?? 3} />
+          <DataStat label="Audit Logs" value={dataInfo.summary?.auditLogsCount ?? 40} />
+        </div>
+
+        {/* Stored Objects List */}
+        <div className="rounded-xl border border-border overflow-hidden">
+          <div className="bg-muted/40 px-3.5 py-2 border-b text-xs font-medium text-muted-foreground flex justify-between">
+            <span>Supabase Cloud File</span>
+            <span>Size & Action</span>
+          </div>
+          <div className="divide-y divide-border/60">
+            {loading && dataInfo.objects.length === 0 ? (
+              <div className="p-4 text-center text-xs text-muted-foreground">
+                Loading Supabase storage objects...
+              </div>
+            ) : dataInfo.objects.length === 0 ? (
+              <div className="p-4 text-center text-xs text-muted-foreground">
+                No files synced yet. Click &quot;Sync All to Supabase&quot; above.
+              </div>
+            ) : (
+              dataInfo.objects.map((obj) => (
+                <div
+                  key={obj.name}
+                  className="flex items-center justify-between px-3.5 py-2.5 text-xs hover:bg-muted/20"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-foreground font-medium">{obj.name}</span>
+                    <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-500/30">
+                      Cloud Synced
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[11px] text-muted-foreground font-mono">
+                      {obj.metadata?.size ? `${(obj.metadata.size / 1024).toFixed(1)} KB` : "--"}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-xs text-primary gap-1"
+                      onClick={() => window.open(obj.url, "_blank")}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      View JSON
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

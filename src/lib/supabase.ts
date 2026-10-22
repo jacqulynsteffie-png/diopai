@@ -1,5 +1,4 @@
-// Supabase Client and Connectivity Utilities
-// Supports both browser-side queries and secure server-side administrative tasks.
+// Supabase Client, Storage & Database Synchronization Utilities
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 export const SUPABASE_CONFIG = {
@@ -15,20 +14,17 @@ export const SUPABASE_CONFIG = {
   jwksUrl:
     process.env.SUPABASE_JWKS_URL ||
     "https://pjbyusgfpoprtfmcxxdf.supabase.co/auth/v1/.well-known/jwks.json",
+  bucketName: "research-data",
 };
 
-// Global singleton instances to avoid reconnects during fast refresh
 let _supabaseClient: SupabaseClient | null = null;
 let _supabaseAdmin: SupabaseClient | null = null;
 
-/**
- * Browser-safe Supabase client using publishable/anon key
- */
 export function getSupabaseClient(): SupabaseClient {
   if (!_supabaseClient) {
     _supabaseClient = createClient(
       SUPABASE_CONFIG.url,
-      SUPABASE_CONFIG.publishableKey,
+      SUPABASE_CONFIG.publishableKey || SUPABASE_CONFIG.secretKey,
       {
         auth: {
           persistSession: true,
@@ -40,14 +36,11 @@ export function getSupabaseClient(): SupabaseClient {
   return _supabaseClient;
 }
 
-/**
- * Server-only Supabase client using secret/service-role key
- */
 export function getSupabaseAdmin(): SupabaseClient {
   if (!_supabaseAdmin) {
     _supabaseAdmin = createClient(
       SUPABASE_CONFIG.url,
-      SUPABASE_CONFIG.secretKey,
+      SUPABASE_CONFIG.secretKey || SUPABASE_CONFIG.publishableKey,
       {
         auth: {
           persistSession: false,
@@ -59,7 +52,6 @@ export function getSupabaseAdmin(): SupabaseClient {
   return _supabaseAdmin;
 }
 
-// Default export is the standard client
 export const supabase = getSupabaseClient();
 
 export interface SupabaseHealthResult {
@@ -68,14 +60,14 @@ export interface SupabaseHealthResult {
   url: string;
   latencyMs: number;
   tables?: string[];
+  bucketExists?: boolean;
   error?: string;
   authenticatedRole?: string;
   timestamp: string;
 }
 
 /**
- * Checks connectivity to the configured Supabase instance.
- * Tests REST endpoint authentication with the Secret key and measures response latency.
+ * Checks connectivity to the configured Supabase instance and verifies the storage bucket.
  */
 export async function testSupabaseConnection(): Promise<SupabaseHealthResult> {
   const start = Date.now();
@@ -109,12 +101,24 @@ export async function testSupabaseConnection(): Promise<SupabaseHealthResult> {
     const swagger = await res.json().catch(() => null);
     const tables = swagger?.definitions ? Object.keys(swagger.definitions) : [];
 
+    // Check bucket
+    const bucketRes = await fetch(
+      `${SUPABASE_CONFIG.url}/storage/v1/bucket/${SUPABASE_CONFIG.bucketName}`,
+      {
+        headers: { apikey: key, Authorization: `Bearer ${key}` },
+        cache: "no-store",
+      }
+    ).catch(() => null);
+
+    const bucketExists = bucketRes?.ok ?? false;
+
     return {
       ok: true,
       status: "Connected & Authenticated",
       url: SUPABASE_CONFIG.url,
       latencyMs,
       tables,
+      bucketExists,
       authenticatedRole: "service_role",
       timestamp: new Date().toISOString(),
     };
@@ -131,43 +135,195 @@ export async function testSupabaseConnection(): Promise<SupabaseHealthResult> {
 }
 
 /**
- * Perform a query via Supabase PostgREST API
+ * Ensure the research-data storage bucket exists in Supabase.
  */
-export async function supabaseRestQuery<T = unknown>(
-  endpoint: string,
-  options: {
-    method?: "GET" | "POST" | "PATCH" | "DELETE";
-    body?: unknown;
-    useAdmin?: boolean;
-    headers?: Record<string, string>;
-  } = {}
-): Promise<{ data: T | null; error: string | null; status: number }> {
-  const { method = "GET", body, useAdmin = true, headers = {} } = options;
-  const key = useAdmin ? SUPABASE_CONFIG.secretKey : SUPABASE_CONFIG.publishableKey;
-  const target = `${SUPABASE_CONFIG.url}/rest/v1/${endpoint.replace(/^\//, "")}`;
+export async function ensureStorageBucket(): Promise<boolean> {
+  const key = SUPABASE_CONFIG.secretKey || SUPABASE_CONFIG.publishableKey;
+  const checkUrl = `${SUPABASE_CONFIG.url}/storage/v1/bucket/${SUPABASE_CONFIG.bucketName}`;
 
   try {
-    const res = await fetch(target, {
-      method,
+    const check = await fetch(checkUrl, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
+    if (check.ok) return true;
+
+    // Create bucket if not found
+    const create = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/bucket`, {
+      method: "POST",
       headers: {
         apikey: key,
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
-        Prefer: "return=representation",
-        ...headers,
       },
-      body: body ? JSON.stringify(body) : undefined,
-      cache: "no-store",
+      body: JSON.stringify({
+        id: SUPABASE_CONFIG.bucketName,
+        name: SUPABASE_CONFIG.bucketName,
+        public: true,
+      }),
+    });
+    return create.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Upload a JSON payload to Supabase Storage.
+ */
+export async function uploadJsonToSupabase(
+  path: string,
+  data: unknown
+): Promise<{ ok: boolean; path: string; error?: string }> {
+  await ensureStorageBucket();
+  const key = SUPABASE_CONFIG.secretKey || SUPABASE_CONFIG.publishableKey;
+  const target = `${SUPABASE_CONFIG.url}/storage/v1/object/${SUPABASE_CONFIG.bucketName}/${path}`;
+
+  try {
+    const res = await fetch(target, {
+      method: "POST",
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+        "x-upsert": "true",
+      },
+      body: JSON.stringify(data, null, 2),
     });
 
     if (!res.ok) {
-      const errText = await res.text().catch(() => "Unknown error");
-      return { data: null, error: errText, status: res.status };
+      const err = await res.text();
+      return { ok: false, path, error: err };
     }
-
-    const data = await res.json().catch(() => null);
-    return { data, error: null, status: res.status };
-  } catch (err) {
-    return { data: null, error: (err as Error).message, status: 500 };
+    return { ok: true, path };
+  } catch (e) {
+    return { ok: false, path, error: (e as Error).message };
   }
+}
+
+/**
+ * Download a JSON payload from Supabase Storage.
+ */
+export async function downloadJsonFromSupabase<T = unknown>(
+  path: string
+): Promise<{ ok: boolean; data: T | null; error?: string }> {
+  const target = `${SUPABASE_CONFIG.url}/storage/v1/object/public/${SUPABASE_CONFIG.bucketName}/${path}?t=${Date.now()}`;
+
+  try {
+    const res = await fetch(target, { cache: "no-store" });
+    if (!res.ok) {
+      return { ok: false, data: null, error: `HTTP ${res.status}` };
+    }
+    const data = (await res.json()) as T;
+    return { ok: true, data };
+  } catch (e) {
+    return { ok: false, data: null, error: (e as Error).message };
+  }
+}
+
+export interface SupabaseStoredObject {
+  name: string;
+  id?: string;
+  updated_at?: string;
+  created_at?: string;
+  metadata?: { size?: number; mimetype?: string };
+  url: string;
+}
+
+/**
+ * List all objects stored in the Supabase research-data bucket.
+ */
+export async function listSupabaseObjects(): Promise<SupabaseStoredObject[]> {
+  await ensureStorageBucket();
+  const key = SUPABASE_CONFIG.secretKey || SUPABASE_CONFIG.publishableKey;
+  const target = `${SUPABASE_CONFIG.url}/storage/v1/object/list/${SUPABASE_CONFIG.bucketName}`;
+
+  try {
+    const res = await fetch(target, {
+      method: "POST",
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prefix: "",
+        limit: 100,
+        sortBy: { column: "name", order: "asc" },
+      }),
+    });
+
+    if (!res.ok) return [];
+    const list = (await res.json()) as Array<{
+      name: string;
+      id?: string;
+      updated_at?: string;
+      created_at?: string;
+      metadata?: { size?: number; mimetype?: string };
+    }>;
+
+    return (list || []).map((item) => ({
+      ...item,
+      url: `${SUPABASE_CONFIG.url}/storage/v1/object/public/${SUPABASE_CONFIG.bucketName}/${item.name}`,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export interface SyncSummary {
+  timestamp: string;
+  casesCount: number;
+  datasetsCount: number;
+  modelsCount: number;
+  reportsCount: number;
+  auditLogsCount: number;
+  usersCount: number;
+  filesSynced: string[];
+  status: "success" | "partial" | "failed";
+}
+
+/**
+ * Synchronize the entire research state to Supabase.
+ * Stores both individual resource files (cases.json, datasets.json, etc.)
+ * and a unified state.json snapshot.
+ */
+export async function syncStateToSupabase(state: {
+  cases?: unknown[];
+  datasets?: unknown[];
+  models?: unknown[];
+  reports?: unknown[];
+  auditLogs?: unknown[];
+  users?: unknown[];
+}): Promise<SyncSummary> {
+  const timestamp = new Date().toISOString();
+  const filesSynced: string[] = [];
+
+  const operations = [
+    { name: "state.json", data: { ...state, syncedAt: timestamp } },
+    { name: "cases.json", data: { count: state.cases?.length || 0, items: state.cases || [], syncedAt: timestamp } },
+    { name: "datasets.json", data: { count: state.datasets?.length || 0, items: state.datasets || [], syncedAt: timestamp } },
+    { name: "models.json", data: { count: state.models?.length || 0, items: state.models || [], syncedAt: timestamp } },
+    { name: "reports.json", data: { count: state.reports?.length || 0, items: state.reports || [], syncedAt: timestamp } },
+    { name: "audit-logs.json", data: { count: state.auditLogs?.length || 0, items: state.auditLogs || [], syncedAt: timestamp } },
+    { name: "users.json", data: { count: state.users?.length || 0, items: state.users || [], syncedAt: timestamp } },
+  ];
+
+  for (const op of operations) {
+    const res = await uploadJsonToSupabase(op.name, op.data);
+    if (res.ok) {
+      filesSynced.push(op.name);
+    }
+  }
+
+  return {
+    timestamp,
+    casesCount: state.cases?.length || 0,
+    datasetsCount: state.datasets?.length || 0,
+    modelsCount: state.models?.length || 0,
+    reportsCount: state.reports?.length || 0,
+    auditLogsCount: state.auditLogs?.length || 0,
+    usersCount: state.users?.length || 0,
+    filesSynced,
+    status: filesSynced.length === operations.length ? "success" : "partial",
+  };
 }
