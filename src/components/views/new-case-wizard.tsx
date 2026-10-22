@@ -210,55 +210,53 @@ export function NewCaseWizard() {
     };
   }
 
-  function save(runPrediction = false) {
+  async function save(runPrediction = false) {
     setSaving(true);
-    setTimeout(() => {
-      const c = buildCase();
-      if (runPrediction) {
-        const pred = pseudoPredict({
-          boneDensityHu: c.cbct.boneDensityHu,
-          boneQuality: c.cbct.boneQuality,
-          corticalBoneThickness: c.cbct.corticalBoneThickness,
-          buccolingualWidth: c.cbct.buccolingualWidth,
-          apicocoronalHeight: c.cbct.apicocoronalHeight,
-          smoking: c.clinical.smokingStatus,
-          diabetes: c.clinical.diabetesStatus,
-          bruxism: c.clinical.bruxism,
-          implantLengthMm: c.clinical.implantLengthMm,
-          loadingProtocol: c.clinical.loadingProtocol,
-        });
-        c.prediction = {
-          modelId: "model_xgb_v1",
-          modelVersion: "1.0",
-          algorithm: "XGBoost",
-          predictedOutcome: pred.predictedOutcome,
-          probability: parseFloat(pred.probability.toFixed(3)),
-          featureContributions: pred.contributions,
-          shapAvailable: true,
-          generatedAt: new Date().toISOString(),
-          status: "Completed",
-        };
-      }
-      addCase(c);
-      addAuditLog({
-        timestamp: new Date().toISOString(),
-        user: currentUser.name,
-        action: "Created research case" + (runPrediction ? " + generated prediction" : ""),
-        module: "Research Cases",
-        caseId: c.caseId,
-        status: "Success",
-        detail: `Created ${c.caseId} (${c.eligibility}).`,
+    const c = buildCase();
+    if (runPrediction) {
+      const pred = pseudoPredict({
+        boneDensityHu: c.cbct.boneDensityHu,
+        boneQuality: c.cbct.boneQuality,
+        corticalBoneThickness: c.cbct.corticalBoneThickness,
+        buccolingualWidth: c.cbct.buccolingualWidth,
+        apicocoronalHeight: c.cbct.apicocoronalHeight,
+        smoking: c.clinical.smokingStatus,
+        diabetes: c.clinical.diabetesStatus,
+        bruxism: c.clinical.bruxism,
+        implantLengthMm: c.clinical.implantLengthMm,
+        loadingProtocol: c.clinical.loadingProtocol,
       });
-      syncToCloud();
-      setSaving(false);
-      close();
-      toast({
-        title: runPrediction ? "Research case saved & prediction generated" : "Research case saved",
-        description: `${c.caseId} · ${eligibility}`,
-      });
-      setSelectedCase(c.id);
-      setView(runPrediction ? "prediction" : "cases");
-    }, 800);
+      c.prediction = {
+        modelId: "model_xgb_v1",
+        modelVersion: "1.0",
+        algorithm: "XGBoost",
+        predictedOutcome: pred.predictedOutcome,
+        probability: parseFloat(pred.probability.toFixed(3)),
+        featureContributions: pred.contributions,
+        shapAvailable: true,
+        generatedAt: new Date().toISOString(),
+        status: "Completed",
+      };
+    }
+    addCase(c);
+    addAuditLog({
+      timestamp: new Date().toISOString(),
+      user: currentUser.name,
+      action: "Created research case" + (runPrediction ? " + generated prediction" : ""),
+      module: "Research Cases",
+      caseId: c.caseId,
+      status: "Success",
+      detail: `Created ${c.caseId} (${c.eligibility}).`,
+    });
+    await syncToCloud();
+    setSaving(false);
+    close();
+    toast({
+      title: runPrediction ? "Research case saved & prediction generated" : "Research case saved",
+      description: `${c.caseId} · ${eligibility} · Stored in Supabase Cloud.`,
+    });
+    setSelectedCase(c.id);
+    setView(runPrediction ? "prediction" : "cases");
   }
 
   return (

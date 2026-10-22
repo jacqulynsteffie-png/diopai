@@ -227,7 +227,13 @@ export const useAppStore = create<AppState>()(
 
   deletedCaseIds: [],
   cases: generateDemoCases(128),
-  addCase: (c) => { set((s) => ({ cases: [c, ...s.cases] })); persistToDb(true); },
+  addCase: (c) => {
+    set((s) => ({
+      cases: [c, ...s.cases.filter((existing) => existing.id !== c.id)],
+      deletedCaseIds: (s.deletedCaseIds || []).filter((id) => id !== c.id),
+    }));
+    persistToDb(true);
+  },
   updateCase: (id, patch) => {
     set((s) => ({
       cases: s.cases.map((c) => (c.id === id ? { ...c, ...patch } : c)),
