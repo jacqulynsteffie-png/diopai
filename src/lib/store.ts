@@ -25,6 +25,7 @@ interface AppState {
   // session
   authenticated: boolean;
   loginMode: "research" | "consultation";
+  setLoginMode: (mode: "research" | "consultation") => void;
   currentUser: { name: string; role: "Admin" | "Researcher"; email: string };
   login: (
     user?: { name: string; role: "Admin" | "Researcher"; email: string },
@@ -146,6 +147,7 @@ export const useAppStore = create<AppState>()(
       return {
   authenticated: false,
   loginMode: "research",
+  setLoginMode: (mode: "research" | "consultation") => set({ loginMode: mode }),
   currentUser: {
     name: "Dr. A. Researcher",
     role: "Admin",

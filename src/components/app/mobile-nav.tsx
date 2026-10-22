@@ -106,18 +106,11 @@ export function MobileNav() {
             {/* Action buttons */}
             <div className="p-2.5 space-y-1.5">
               <button
-                onClick={() => { go("patient-consultation"); }}
+                onClick={() => { openNewCase(); setDrawerOpen(false); }}
                 className="flex w-full items-center gap-3 rounded-lg bg-brand-gradient px-3 py-2.5 text-xs font-semibold text-white shadow-sm"
               >
-                <Stethoscope className="h-4 w-4 text-white" />
-                <span>Patient AI Consultation</span>
-              </button>
-              <button
-                onClick={() => { openNewCase(); setDrawerOpen(false); }}
-                className="flex w-full items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10"
-              >
-                <Sparkles className="h-4 w-4 text-cyan-300" />
-                <span>New Research Case</span>
+                <Sparkles className="h-4 w-4 text-white" />
+                <span>+ New Research Case</span>
               </button>
             </div>
 

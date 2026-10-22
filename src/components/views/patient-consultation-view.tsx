@@ -180,8 +180,13 @@ const PRESETS = [
 ];
 
 export function PatientConsultationView() {
-  const { cases, addCase, addDataset, addAuditLog, currentUser, syncToCloud, setView } = useAppStore();
+  const { cases, addCase, addDataset, addAuditLog, currentUser, syncToCloud, deleteCase } = useAppStore();
   const { toast } = useToast();
+
+  const clinicalCases = React.useMemo(
+    () => cases.filter((c) => c.caseId.startsWith("RC-LIVE-") || c.cbct?.source === "Live Patient Consultation"),
+    [cases]
+  );
 
   const [selectedModelId, setSelectedModelId] = React.useState<string>("model_xgb_v1");
   const [patientText, setPatientText] = React.useState<string>(PRESETS[0].text);
@@ -432,7 +437,7 @@ export function PatientConsultationView() {
     addAuditLog({
       timestamp: now,
       user: currentUser.name,
-      action: `Enrolled patient case ${newCaseId} into model training dataset`,
+      action: `Saved patient intake details for case ${newCaseId}`,
       module: "Patient Consultation",
       caseId: newCaseId,
       status: "Success",
@@ -446,8 +451,8 @@ export function PatientConsultationView() {
     setEnrolledSuccess(newCaseId);
 
     toast({
-      title: "Patient Data Enrolled in Training Dataset",
-      description: `${newCaseId} stored in cases & training cohort. Cloud synced to Supabase.`,
+      title: "Patient Intake Details Saved",
+      description: `${newCaseId} recorded with patient clinical parameters. Synced to cloud database.`,
     });
   };
 
@@ -474,22 +479,10 @@ export function PatientConsultationView() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setView("cases")}
-              className="text-xs gap-1.5"
-            >
-              <FileCheck className="h-4 w-4 text-primary" /> View All Cases ({cases.length})
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setView("dataset")}
-              className="text-xs gap-1.5"
-            >
-              <Database className="h-4 w-4 text-emerald-600" /> Training Datasets
-            </Button>
+            <span className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 shadow-xs">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              Direct Clinical Specialist Dashboard
+            </span>
           </div>
         </div>
 
@@ -909,15 +902,15 @@ export function PatientConsultationView() {
                 </div>
               </div>
 
-              {/* Action: Store in Dataset for Training */}
+              {/* Action: Save Patient Details */}
               <div className="pt-2">
                 <Button
                   onClick={handleStoreToDataset}
                   disabled={enrolling}
                   className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 h-auto text-xs shadow-md shadow-emerald-600/20 gap-2"
                 >
-                  <Database className={cn("h-4 w-4", enrolling && "animate-spin")} />
-                  {enrolling ? "Enrolling & Persisting..." : "Save Case & Store in Dataset to Train Model"}
+                  <FileCheck className={cn("h-4 w-4", enrolling && "animate-spin")} />
+                  {enrolling ? "Saving Patient Details..." : "Save & Record Patient Intake Details"}
                 </Button>
                 {enrolledSuccess && (
                   <motion.div
@@ -926,7 +919,7 @@ export function PatientConsultationView() {
                     className="mt-2 flex items-center justify-center gap-1.5 text-center text-xs text-emerald-600 font-medium"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    Enrolled as {enrolledSuccess}. Added to Model Retraining Cohort!
+                    Patient intake recorded as {enrolledSuccess}. Synced to cloud.
                   </motion.div>
                 )}
               </div>
@@ -934,6 +927,88 @@ export function PatientConsultationView() {
           </Card>
         </div>
       </div>
+
+      {/* Enrolled Patient Details Section (Patient Detail Alone) */}
+      <Card className="border-border shadow-sm">
+        <CardHeader className="py-3 px-5 border-b border-border bg-muted/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileCheck className="h-4 w-4 text-emerald-600" />
+              <CardTitle className="text-sm font-semibold">Recorded Patient Intake Records</CardTitle>
+            </div>
+            <Badge variant="outline" className="text-xs">
+              {clinicalCases.length} Patient{clinicalCases.length === 1 ? "" : "s"} Enrolled
+            </Badge>
+          </div>
+          <CardDescription className="text-xs">
+            Patient demographics, anatomical measurements, and AI feasibility plans recorded during clinical consultation.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-5">
+          {clinicalCases.length === 0 ? (
+            <div className="text-center py-8 text-xs text-muted-foreground space-y-1">
+              <p className="font-medium text-foreground">No patient intake records saved yet</p>
+              <p>Configure the clinical notes and patient parameters above and click &quot;Save & Record Patient Intake Details&quot;.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border text-muted-foreground text-left">
+                    <th className="py-2.5 px-3 font-semibold">Patient Case ID</th>
+                    <th className="py-2.5 px-3 font-semibold">Age / Sex</th>
+                    <th className="py-2.5 px-3 font-semibold">Missing Site / Tooth</th>
+                    <th className="py-2.5 px-3 font-semibold">Bone Quality / Density</th>
+                    <th className="py-2.5 px-3 font-semibold">Ridge Geometry</th>
+                    <th className="py-2.5 px-3 font-semibold">Feasibility Verdict</th>
+                    <th className="py-2.5 px-3 font-semibold">Outcome Prob.</th>
+                    <th className="py-2.5 px-3 font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {clinicalCases.map((c) => (
+                    <tr key={c.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-2.5 px-3 font-mono font-medium text-foreground">{c.caseId}</td>
+                      <td className="py-2.5 px-3">{c.age}y / {c.sex}</td>
+                      <td className="py-2.5 px-3 font-medium text-foreground">{c.toothPosition || c.implantSite}</td>
+                      <td className="py-2.5 px-3">
+                        <span className="font-medium">{c.cbct?.boneQualityType || "—"}</span>{" "}
+                        <span className="text-muted-foreground font-mono text-[11px]">({c.cbct?.boneDensityHu ?? "—"} HU)</span>
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-[11px]">
+                        W: {c.cbct?.buccolingualWidth ?? "—"}mm · H: {c.cbct?.apicocoronalHeight ?? "—"}mm
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="h-3 w-3" />
+                          {c.outcome?.notes?.slice(0, 32) || "Surgical Protocol Ready"}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 font-mono font-semibold text-foreground">
+                        {c.prediction?.probability ? `${Math.round(c.prediction.probability * 100)}%` : "—"}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            deleteCase(c.id);
+                            syncToCloud();
+                            toast({ title: "Patient Record Removed", description: `${c.caseId} deleted.` });
+                          }}
+                          className="h-7 px-2 text-destructive hover:bg-destructive/10 text-xs"
+                        >
+                          Delete
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

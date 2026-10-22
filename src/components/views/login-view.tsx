@@ -27,13 +27,21 @@ import { cn } from "@/lib/utils";
 
 type LoginMode = "research" | "consultation";
 
-export function LoginView() {
+interface LoginViewProps {
+  initialMode?: "research" | "consultation";
+}
+
+export function LoginView({ initialMode = "research" }: LoginViewProps) {
   const { login, hydrateFromDb } = useAppStore();
   const { toast } = useToast();
 
-  const [mode, setMode] = React.useState<LoginMode>("research");
-  const [email, setEmail] = React.useState("a.researcher@diop-ai.research");
-  const [password, setPassword] = React.useState("research");
+  const [mode, setMode] = React.useState<LoginMode>(initialMode);
+  const [email, setEmail] = React.useState(
+    initialMode === "consultation" ? "implant.specialist@diop-ai.clinic" : "a.researcher@diop-ai.research"
+  );
+  const [password, setPassword] = React.useState(
+    initialMode === "consultation" ? "clinical" : "research"
+  );
   const [show, setShow] = React.useState(false);
   const [remember, setRemember] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
@@ -177,11 +185,11 @@ export function LoginView() {
             <div className="grid grid-cols-2 gap-3 pt-2">
               <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                 <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Research Portal</span>
-                <p className="mt-1 text-xs text-slate-200">129 De-identified retrospective cases, model validation & SHAP analysis.</p>
+                <p className="mt-1 text-xs text-slate-200">De-identified retrospective cases, model validation & SHAP analysis.</p>
               </div>
               <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3">
                 <span className="text-[10px] uppercase tracking-wider text-cyan-300 font-semibold">Live Patient AI</span>
-                <p className="mt-1 text-xs text-slate-200">Natural text intake, implant possibility plan, and dataset enrollment.</p>
+                <p className="mt-1 text-xs text-slate-200">Patient intake, implant feasibility plan, and clinical records.</p>
               </div>
             </div>
           </div>
@@ -192,7 +200,7 @@ export function LoginView() {
         </div>
       </div>
 
-      {/* Right — Dual Login Form with Portal Switcher */}
+      {/* Right — Dedicated Login Form */}
       <div className="relative flex items-center justify-center bg-background px-4 py-8 sm:px-12 sm:py-12">
         <div className="absolute inset-0 bg-grid opacity-30 lg:hidden" />
         <motion.div
@@ -201,49 +209,12 @@ export function LoginView() {
           transition={{ duration: 0.4 }}
           className="relative w-full max-w-md space-y-6"
         >
-          {/* Prominent, Big Mobile Logo */}
-          <div className="flex flex-col items-center sm:items-start gap-2 lg:hidden">
-            <div className="flex items-center justify-center p-3.5 rounded-2xl bg-gradient-to-b from-primary/10 via-primary/5 to-transparent border border-primary/20 shadow-sm w-full sm:w-auto">
-              <BrandLogo className="h-16 sm:h-20 w-auto max-w-[270px] sm:max-w-[320px] object-contain drop-shadow" />
-            </div>
+          {/* Perfectly Centered, Prominent Large Mobile Logo */}
+          <div className="flex flex-col items-center justify-center w-full lg:hidden mb-4 text-center">
+            <BrandLogo className="h-24 sm:h-28 w-auto max-w-[300px] sm:max-w-[340px] object-contain drop-shadow-md mx-auto" />
           </div>
 
-          {/* Dedicated Login Portal Switcher Tabs */}
-          <div className="space-y-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Select Login Portal:
-            </span>
-            <div className="grid grid-cols-2 p-1 rounded-xl bg-muted/80 border border-border shadow-inner">
-              <button
-                type="button"
-                onClick={() => handleModeSwitch("research")}
-                className={cn(
-                  "flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all",
-                  mode === "research"
-                    ? "bg-background text-primary shadow-sm border border-border/60"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <FolderSearch className="h-4 w-4" />
-                <span>Research Platform</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleModeSwitch("consultation")}
-                className={cn(
-                  "flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all",
-                  mode === "consultation"
-                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Stethoscope className="h-4 w-4" />
-                <span>Patient AI Consultation</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Active Portal Header & Badge */}
+          {/* Active Portal Header & Badge (Separate Login Header) */}
           <AnimatePresence mode="wait">
             <motion.div
               key={mode}
@@ -251,24 +222,24 @@ export function LoginView() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.2 }}
-              className="space-y-2"
+              className="space-y-2 text-center sm:text-left"
             >
               {mode === "consultation" ? (
                 <>
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                    <Sparkles className="h-3 w-3" /> Live Patient AI Consultation Login
+                    <Sparkles className="h-3 w-3" /> Dedicated Patient AI Consultation Portal
                   </span>
                   <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                    Patient Consultation Portal
+                    Patient Consultation Login
                   </h1>
                   <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                    Dedicated sign-in for clinical specialists. Input real-person clinical notes, choose predictive models, assess surgical feasibility, and enroll cases into the training dataset.
+                    Exclusive sign-in for clinical implant specialists. Evaluate individual patient details, calculate implant feasibility, and maintain clinical intake records.
                   </p>
                 </>
               ) : (
                 <>
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-brand-gradient-soft px-3 py-1 text-[11px] font-semibold text-primary">
-                    <ShieldCheck className="h-3 w-3" /> Research Investigator Access
+                    <ShieldCheck className="h-3 w-3" /> Research Platform Portal
                   </span>
                   <h1 className="text-2xl font-bold tracking-tight text-foreground">
                     Research Platform Login
@@ -295,7 +266,7 @@ export function LoginView() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="h-11 pl-9 text-xs"
-                  placeholder={mode === "consultation" ? "implant.specialist@diop-ai.clinic" : "researcher@institution.edu"}
+                  placeholder={mode === "consultation" ? "implant.specialist@diop-ai.clinic" : "a.researcher@diop-ai.research"}
                   required
                 />
               </div>
@@ -351,7 +322,7 @@ export function LoginView() {
                 "Authenticating Portal…"
               ) : mode === "consultation" ? (
                 <>
-                  <Stethoscope className="h-4 w-4" /> Sign In to Live Patient Consultation
+                  <Stethoscope className="h-4 w-4" /> Sign In to Patient Consultation Dashboard
                 </>
               ) : (
                 <>
@@ -362,28 +333,43 @@ export function LoginView() {
             </Button>
           </form>
 
-          {/* Quick Preset Selector for this portal */}
-          <div className="rounded-xl border border-border/80 bg-muted/40 p-3 space-y-1 text-xs">
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium">
-              <span>Active Environment:</span>
-              <strong className="text-foreground">
-                {mode === "consultation" ? "Live Patient Clinical Intake" : "Retrospective Research Study"}
-              </strong>
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              {mode === "consultation"
-                ? "Directly unlocks text note intake, multi-model feasibility planning & training dataset storage."
-                : "Unlocks 129 research cases, CBCT workspace, model training, validation & audit logs."}
+          {/* Separate Portal Switch Action */}
+          <div className="pt-2 border-t border-border/70 text-center space-y-2">
+            <p className="text-[11px] text-muted-foreground">
+              {mode === "research"
+                ? "Conducting live patient consultation & clinical intake?"
+                : "Looking for retrospective research platform & model benchmarks?"}
             </p>
+            {mode === "research" ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleModeSwitch("consultation")}
+                className="w-full text-xs font-semibold border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 gap-1.5 h-9 shadow-xs"
+              >
+                <Stethoscope className="h-4 w-4" /> Switch to Patient AI Consultation Login →
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleModeSwitch("research")}
+                className="w-full text-xs font-semibold border-primary/30 text-primary hover:bg-primary/10 gap-1.5 h-9 shadow-xs"
+              >
+                <FolderSearch className="h-4 w-4" /> Switch to Research Platform Login →
+              </Button>
+            )}
           </div>
 
           <div className="flex items-center gap-2 rounded-lg border border-amber-200/60 bg-amber-50 px-3 py-2 text-[11px] text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
             <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
-            <span>Authorized personnel only. All patient interactions and research access are audit-logged.</span>
+            <span>Authorized personnel only. All access is audit-logged and secured.</span>
           </div>
 
           <p className="text-center text-[11px] text-muted-foreground">
-            Secure clinical & research access · Diop AI Research Platform
+            Secure clinical & research access · Diop AI Platform
           </p>
         </motion.div>
       </div>

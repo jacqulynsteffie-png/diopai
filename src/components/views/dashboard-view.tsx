@@ -210,14 +210,14 @@ export function DashboardView() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={() => setView("patient-consultation")} className="bg-brand-gradient text-white gap-1.5 shadow-sm">
-              <Sparkles className="h-4 w-4" /> Live Patient AI Consultation
-            </Button>
-            <Button variant="outline" onClick={openNewCase}>
-              + New Case
+            <Button className="bg-brand-gradient text-white" onClick={openNewCase}>
+              + New Research Case
             </Button>
             <Button variant="outline" onClick={() => setView("prediction")}>
               Run Prediction
+            </Button>
+            <Button variant="outline" onClick={() => setView("cases")}>
+              Browse Cases
             </Button>
           </div>
         </div>

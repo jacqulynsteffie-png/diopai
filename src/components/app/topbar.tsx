@@ -39,7 +39,6 @@ const VIEW_TITLES: Record<string, { title: string; subtitle: string }> = {
   clinical: { title: "Clinical Data", subtitle: "Approved research clinical variables." },
   outcomes: { title: "Outcomes", subtitle: "Documented implant outcomes per research protocol." },
   prediction: { title: "AI Outcome Prediction", subtitle: "Research-use model predictions and explanations." },
-  "patient-consultation": { title: "Live Patient AI Consultation", subtitle: "Interactive real-patient intake, model selection, implant feasibility plan, and dataset enrollment." },
   "model-performance": { title: "Model Performance", subtitle: "Scientific evaluation of predictive models." },
   "feature-analysis": { title: "Feature Analysis", subtitle: "Feature importance, SHAP, and distributions." },
   dataset: { title: "Dataset", subtitle: "Research dataset import, validation, and quality." },
@@ -87,7 +86,7 @@ export function Topbar() {
     <header className="sticky top-0 z-20 flex h-16 items-center gap-2 border-b border-border/70 bg-glass glass px-3 sm:gap-3 sm:px-6">
       {/* Mobile brand mark */}
       <div className="flex items-center gap-2 lg:hidden">
-        <LogoMark className="h-8 w-8" />
+        <LogoMark className="h-9 w-9 sm:h-10 sm:w-10 object-contain drop-shadow-sm" />
       </div>
       {/* Title */}
       <div className="min-w-0 flex-1">
@@ -252,10 +251,6 @@ export function Topbar() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setView(view === "patient-consultation" ? "dashboard" : "patient-consultation")}>
-            <Sparkles className="mr-2 h-4 w-4 text-emerald-600" />
-            {view === "patient-consultation" ? "Switch to Research Platform" : "Open Patient AI Consultation"}
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setView("settings")}>
             <User className="mr-2 h-4 w-4" /> Profile & Settings
           </DropdownMenuItem>
