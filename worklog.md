@@ -518,3 +518,23 @@ Verification (Agent Browser):
 
 Stage Summary:
 - Persistence made reliable via synchronous auto-hydration. Added cases (and datasets/models) store to localStorage and are visible immediately + survive reloads constantly.
+
+---
+Task ID: mobile-view-polish
+Agent: main (orchestrator)
+Task: Fix mobile view ("not perfect" + "other button showing").
+
+Work Log:
+- "Other button" = the AI status indicator (wide, with text + dropdown) crowding the mobile topbar. FIX: wrapped <AiStatusIndicator/> in `hidden lg:block` (desktop only).
+- Topbar clutter: hid the theme toggle on mobile (`hidden sm:grid`) → accessible via Settings → Appearance. Mobile topbar now: logo + readable title + search + bell + profile.
+- Bottom nav had 6 items (5 primary + More) → cramped labels. FIX: reduced MOBILE_PRIMARY_NAV to 4 (dashboard, cases, cbct-workspace, prediction) + built-in More = 5 total. Settings now reachable via the More drawer.
+
+Verification (Agent Browser @ 390×844 + VLM):
+- Topbar: VLM "clean — logo, title 'Research Overview' readable, search, bell, profile; AI status gone; less crowded."
+- Bottom nav: 5 items (Home, Cases, CBCT AI, Predict, More); labels fully visible, not cut off.
+- Scrolled to bottom (real viewport): no overlap — footer properly above nav; labels visible.
+- Top viewport: hero + stat cards clean vertical stack, aligned, no overlap.
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- Mobile view polished: AI status "other button" hidden on mobile, bottom nav reduced to 5 items, topbar de-cluttered (theme hidden), labels visible, no overlap.

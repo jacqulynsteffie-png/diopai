@@ -47,13 +47,13 @@ export const NAV: NavItem[] = [
   { id: "settings", label: "Settings", shortLabel: "Settings", icon: SettingsIcon, group: "System" },
 ];
 
-// Items shown in the mobile bottom navigation (primary destinations).
+// Items shown in the mobile bottom navigation (primary destinations). Keep to 4 + the
+// built-in "More" button = 5 total so labels never get cramped on small screens.
 export const MOBILE_PRIMARY_NAV: ViewId[] = [
   "dashboard",
   "cases",
   "cbct-workspace",
   "prediction",
-  "settings",
 ];
 
 export function groupNav(): Record<string, NavItem[]> {

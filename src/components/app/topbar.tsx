@@ -120,8 +120,10 @@ export function Topbar() {
         </Tooltip>
       </TooltipProvider>
 
-      {/* AI status indicator */}
-      <AiStatusIndicator />
+      {/* AI status indicator — desktop only (avoids crowding the mobile topbar) */}
+      <div className="hidden lg:block">
+        <AiStatusIndicator />
+      </div>
 
       {/* New case quick */}
       <button
@@ -131,13 +133,13 @@ export function Topbar() {
         + New Case
       </button>
 
-      {/* Theme toggle */}
+      {/* Theme toggle — desktop only on mobile to save space */}
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card/60 text-muted-foreground transition-colors hover:text-foreground"
+              className="hidden sm:grid h-9 w-9 place-items-center rounded-lg border border-border bg-card/60 text-muted-foreground transition-colors hover:text-foreground"
               aria-label="Toggle theme"
             >
               {mounted && theme === "dark" ? (
