@@ -20,6 +20,8 @@ import {
   ScanLine,
   Activity,
   RefreshCw,
+  Trash2,
+  Lock,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { Card } from "@/components/ui/card";
@@ -40,6 +42,16 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -48,7 +60,9 @@ import { STUDY_META, type ResearchCase } from "@/lib/types";
 type SortKey = "createdAt" | "age" | "caseId" | "prediction";
 
 export function CasesView() {
-  const { cases, openNewCase, setSelectedCase, selectedCaseId, setView, hydrateFromDb, syncToCloud } = useAppStore();
+  const { cases, openNewCase, setSelectedCase, selectedCaseId, setView, hydrateFromDb, syncToCloud, currentUser, deleteCase } = useAppStore();
+  const isAdmin = currentUser?.role === "Admin";
+  const [caseToDelete, setCaseToDelete] = React.useState<ResearchCase | null>(null);
   const { toast } = useToast();
   const [query, setQuery] = React.useState("");
   const [fOutcome, setFOutcome] = React.useState("all");
@@ -299,6 +313,27 @@ export function CasesView() {
                         <IconAction label="Edit" onClick={() => { setSelectedCase(c.id); }}><Pencil className="h-3.5 w-3.5" /></IconAction>
                         <IconAction label="Prediction" onClick={() => { setSelectedCase(c.id); setView("prediction"); }}><Brain className="h-3.5 w-3.5" /></IconAction>
                         <IconAction label="Report" onClick={() => { setView("reports"); }}><FileText className="h-3.5 w-3.5" /></IconAction>
+                        <IconAction
+                          label={isAdmin ? "Delete Case (Admin Only)" : "Delete Restricted (Admin Only)"}
+                          danger
+                          onClick={() => {
+                            if (!isAdmin) {
+                              toast({
+                                title: "Admin Privilege Required",
+                                description: `Only research platform administrators can delete case records. Your current role is "${currentUser?.role || "Researcher"}".`,
+                                variant: "destructive",
+                              });
+                              return;
+                            }
+                            setCaseToDelete(c);
+                          }}
+                        >
+                          {isAdmin ? (
+                            <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-red-600 transition-colors" />
+                          ) : (
+                            <Lock className="h-3.5 w-3.5 opacity-40 hover:opacity-90 transition-opacity" />
+                          )}
+                        </IconAction>
                       </div>
                     </td>
                   </tr>
@@ -341,10 +376,42 @@ export function CasesView() {
                     <Badge variant="outline" className={cn("text-[10px]", c.outcome.documentedOutcome === "Success" ? "border-emerald-200 text-emerald-700" : "border-red-200 text-red-600")}>Actual: {c.outcome.documentedOutcome}</Badge>
                   )}
                 </div>
-                <div className="mt-2.5 flex items-center justify-end gap-1 border-t border-border/60 pt-2">
-                  <IconAction label="View" onClick={() => setSelectedCase(c.id)}><Eye className="h-3.5 w-3.5" /></IconAction>
-                  <IconAction label="Prediction" onClick={() => { setSelectedCase(c.id); setView("prediction"); }}><Brain className="h-3.5 w-3.5" /></IconAction>
-                  <IconAction label="Report" onClick={() => { setView("reports"); }}><FileText className="h-3.5 w-3.5" /></IconAction>
+                <div className="mt-2.5 flex items-center justify-between border-t border-border/60 pt-2">
+                  <span className="text-[10px] text-muted-foreground">
+                    {isAdmin ? (
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium text-[10px] inline-flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Admin
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground text-[10px]">Read-only</span>
+                    )}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <IconAction label="View" onClick={() => setSelectedCase(c.id)}><Eye className="h-3.5 w-3.5" /></IconAction>
+                    <IconAction label="Prediction" onClick={() => { setSelectedCase(c.id); setView("prediction"); }}><Brain className="h-3.5 w-3.5" /></IconAction>
+                    <IconAction label="Report" onClick={() => { setView("reports"); }}><FileText className="h-3.5 w-3.5" /></IconAction>
+                    <IconAction
+                      label={isAdmin ? "Delete Case" : "Admin Only"}
+                      danger
+                      onClick={() => {
+                        if (!isAdmin) {
+                          toast({
+                            title: "Admin Privilege Required",
+                            description: "Only administrators can delete research records.",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        setCaseToDelete(c);
+                      }}
+                    >
+                      {isAdmin ? (
+                        <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-red-600 transition-colors" />
+                      ) : (
+                        <Lock className="h-3.5 w-3.5 opacity-40 hover:opacity-90 transition-opacity" />
+                      )}
+                    </IconAction>
+                  </div>
                 </div>
               </div>
             ))
@@ -366,7 +433,55 @@ export function CasesView() {
         </div>
       </Card>
 
-      <CaseDetailSheet caseData={selectedCase} />
+      <CaseDetailSheet caseData={selectedCase} onRequestDelete={(c) => setCaseToDelete(c)} />
+
+      {/* Admin Delete Confirmation Modal */}
+      <AlertDialog open={!!caseToDelete} onOpenChange={(open) => !open && setCaseToDelete(null)}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <Trash2 className="h-5 w-5" /> Permanently Delete Case Record?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2 text-xs">
+              <p>
+                You are about to delete research record{" "}
+                <strong className="font-mono text-foreground font-bold">{caseToDelete?.caseId}</strong>{" "}
+                ({caseToDelete?.age}y · {caseToDelete?.sex} · {caseToDelete?.implantSite}).
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                This operation will remove the case from the active research dataset, synchronize deletion across all logged-in devices via Supabase Cloud, and record an immutable audit log entry under Admin{" "}
+                <strong className="text-foreground">{currentUser?.name}</strong>.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCaseToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (caseToDelete) {
+                  const ok = deleteCase(caseToDelete.id);
+                  if (ok) {
+                    toast({
+                      title: "Research Case Deleted",
+                      description: `Case ${caseToDelete.caseId} was removed by Admin.`,
+                    });
+                  } else {
+                    toast({
+                      title: "Deletion Failed",
+                      description: "Admin permissions required.",
+                      variant: "destructive",
+                    });
+                  }
+                  setCaseToDelete(null);
+                }
+              }}
+              className="bg-red-600 text-white hover:bg-red-700 font-semibold"
+            >
+              Delete Case (Admin)
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -383,13 +498,28 @@ function Th({ children, onClick, active, dir }: { children: React.ReactNode; onC
   );
 }
 
-function IconAction({ children, label, onClick }: { children: React.ReactNode; label: string; onClick: () => void }) {
+function IconAction({
+  children,
+  label,
+  onClick,
+  danger,
+}: {
+  children: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+}) {
   return (
     <button
       onClick={onClick}
       title={label}
       aria-label={label}
-      className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+      className={cn(
+        "grid h-7 w-7 place-items-center rounded-md text-muted-foreground transition-colors",
+        danger
+          ? "hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400"
+          : "hover:bg-primary/10 hover:text-primary"
+      )}
     >
       {children}
     </button>
@@ -411,8 +541,15 @@ function EmptyState({ title, desc, action }: { title: string; desc: string; acti
   );
 }
 
-function CaseDetailSheet({ caseData }: { caseData: ResearchCase | null }) {
-  const { setSelectedCase, setView } = useAppStore();
+function CaseDetailSheet({
+  caseData,
+  onRequestDelete,
+}: {
+  caseData: ResearchCase | null;
+  onRequestDelete?: (c: ResearchCase) => void;
+}) {
+  const { setSelectedCase, setView, currentUser } = useAppStore();
+  const isAdmin = currentUser?.role === "Admin";
   const open = !!caseData;
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) setSelectedCase(null); }}>
@@ -531,6 +668,49 @@ function CaseDetailSheet({ caseData }: { caseData: ResearchCase | null }) {
               <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                 <span>Created {caseData.createdAt.slice(0, 10)} by {caseData.createdBy}</span>
                 <span>Updated {caseData.updatedAt.slice(0, 10)}</span>
+              </div>
+
+              {/* Administrative Deletion Actions */}
+              <div className="pt-2">
+                {isAdmin ? (
+                  <div className="rounded-xl border border-red-200/70 bg-red-50/60 p-4 dark:border-red-900/50 dark:bg-red-950/20 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                        <span className="text-xs font-semibold text-red-900 dark:text-red-300">
+                          Administrator Record Control
+                        </span>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] border-red-200 bg-white text-red-700 dark:bg-red-950/50 dark:text-red-300">
+                        Admin Only
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-red-700/80 dark:text-red-300/80 leading-relaxed">
+                      Permanently delete this research case and remove it from the retrospective dataset across all connected devices.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onRequestDelete?.(caseData)}
+                      className="w-full mt-1 border-red-300 bg-white text-red-600 hover:bg-red-600 hover:text-white dark:bg-red-950/60 dark:border-red-800 dark:text-red-300 transition-colors font-medium text-xs gap-1.5 shadow-sm"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Delete Case {caseData.caseId} (Admin)
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-border/70 bg-muted/40 p-3 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Lock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                      <div>
+                        <p className="font-medium text-foreground text-xs">Record Deletion Restricted</p>
+                        <p className="text-[10px] text-muted-foreground">Admin role required to delete research cases.</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                      Role: {currentUser?.role || "Researcher"}
+                    </Badge>
+                  </div>
+                )}
               </div>
             </div>
           </>

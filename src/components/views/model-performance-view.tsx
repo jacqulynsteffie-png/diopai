@@ -2,12 +2,20 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Activity, GitCompare, Cpu, Info, Layers } from "lucide-react";
+import { Activity, GitCompare, Cpu, Info, Layers, Plus, Pencil, Trash2, Eye, CheckCircle2 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ModelTrainWizard } from "./model-train-wizard";
+import {
+  CreateModelDialog,
+  EditModelDialog,
+  ViewModelDetailsDialog,
+  DeleteModelAlert,
+} from "./model-crud-dialogs";
+import type { ModelVersion } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
   ResponsiveContainer,
@@ -30,7 +38,16 @@ import {
 
 export function ModelPerformanceView() {
   const { models } = useAppStore();
-  const active = models.find((m) => m.algorithm === "XGBoost") ?? models[0];
+  const [selectedModelId, setSelectedModelId] = React.useState<string>(models[0]?.id ?? "");
+
+  // Dialog states for CRUD
+  const [createOpen, setCreateOpen] = React.useState(false);
+  const [modelToEdit, setModelToEdit] = React.useState<ModelVersion | null>(null);
+  const [modelToView, setModelToView] = React.useState<ModelVersion | null>(null);
+  const [modelToDelete, setModelToDelete] = React.useState<ModelVersion | null>(null);
+
+  // Active inspected model (interactive selector)
+  const active = models.find((m) => m.id === selectedModelId) ?? models[0];
   const metrics = active?.metrics;
 
   const metricCards = metrics
@@ -46,6 +63,55 @@ export function ModelPerformanceView() {
 
   return (
     <div className="space-y-4">
+      {/* Active Model Banner */}
+      {active && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl border border-border bg-card p-3 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="grid h-8 w-8 place-items-center rounded-lg bg-brand-gradient-soft text-primary">
+              <Cpu className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-foreground">
+                  Active Analysis Target: {active.algorithm} v{active.version}
+                </span>
+                <Badge
+                  variant="outline"
+                  className={
+                    active.status === "Validated"
+                      ? "text-[10px] border-emerald-500/40 text-emerald-600 bg-emerald-500/10"
+                      : "text-[10px] border-amber-500/40 text-amber-600 bg-amber-500/10"
+                  }
+                >
+                  {active.status}
+                </Badge>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                All performance curves, confusion matrices, and feature analyses below reflect this model.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 self-end sm:self-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setModelToView(active)}
+              className="h-8 text-xs gap-1"
+            >
+              <Eye className="h-3.5 w-3.5" /> Specs
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setModelToEdit(active)}
+              className="h-8 text-xs gap-1"
+            >
+              <Pencil className="h-3.5 w-3.5" /> Edit
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Performance cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {metricCards.map((m, i) => (
@@ -61,14 +127,23 @@ export function ModelPerformanceView() {
         ))}
       </div>
 
-      {/* Model Registry */}
+      {/* Model Registry (Full CRUD) */}
       <Card>
-        <CardHeader className="flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <CardTitle className="flex items-center gap-2"><Layers className="h-4 w-4 text-primary" /> Model Registry</CardTitle>
-            <CardDescription>Registered research models — add new or train</CardDescription>
+            <CardTitle className="flex items-center gap-2"><Layers className="h-4 w-4 text-primary" /> Model Registry & Lifecycle</CardTitle>
+            <CardDescription>Comprehensive CRUD management for research and clinical AI architectures</CardDescription>
           </div>
-          <ModelTrainWizard />
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setCreateOpen(true)}
+              size="sm"
+              className="gap-1.5 bg-brand-gradient text-white text-xs h-9 shadow-sm"
+            >
+              <Plus className="h-3.5 w-3.5" /> Add Model
+            </Button>
+            <ModelTrainWizard />
+          </div>
         </CardHeader>
         <CardContent className="px-0">
           <div className="overflow-x-auto scrollbar-medical">
@@ -80,29 +155,87 @@ export function ModelPerformanceView() {
                   <th className="px-3 py-2.5 font-medium">Status</th>
                   <th className="px-3 py-2.5 font-medium">Features</th>
                   <th className="px-3 py-2.5 font-medium">ROC-AUC</th>
-                  <th className="px-6 py-2.5 font-medium text-right">Trained</th>
+                  <th className="px-4 py-2.5 font-medium">Trained</th>
+                  <th className="px-6 py-2.5 font-medium text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {models.map((m) => (
-                  <tr key={m.id} className={cn("border-b border-border/60 hover:bg-muted/40", m.algorithm === "XGBoost" && m.version === "1.0" && "bg-brand-gradient-soft")}>
-                    <td className="px-6 py-3 font-medium text-foreground flex items-center gap-1.5">
-                      {m.algorithm === "XGBoost" && m.version === "1.0" && <Cpu className="h-3.5 w-3.5 text-primary" />}
-                      {m.algorithm}
-                      {m.algorithm === "XGBoost" && m.version === "1.0" && <Badge className="ml-1 bg-primary/10 text-primary text-[9px]">Current</Badge>}
-                    </td>
-                    <td className="px-3 py-3 text-muted-foreground">{m.version}</td>
-                    <td className="px-3 py-3"><Badge variant="outline" className="text-[10px]">{m.status}</Badge></td>
-                    <td className="px-3 py-3 text-xs text-muted-foreground">{m.featureList.length}</td>
-                    <td className="px-3 py-3 tabular-nums font-semibold text-primary">{m.rocAuc?.toFixed(2) ?? "—"}</td>
-                    <td className="px-6 py-3 text-right text-xs text-muted-foreground">{m.trainedAt?.slice(0, 10) ?? "Not trained"}</td>
-                  </tr>
-                ))}
+                {models.map((m) => {
+                  const isSelected = m.id === active?.id;
+                  return (
+                    <tr
+                      key={m.id}
+                      onClick={() => setSelectedModelId(m.id)}
+                      className={cn(
+                        "border-b border-border/60 hover:bg-muted/50 cursor-pointer transition-colors",
+                        isSelected && "bg-brand-gradient-soft font-medium"
+                      )}
+                    >
+                      <td className="px-6 py-3 font-medium text-foreground flex items-center gap-1.5">
+                        <Cpu className={cn("h-3.5 w-3.5", isSelected ? "text-primary" : "text-muted-foreground")} />
+                        {m.algorithm}
+                        {isSelected && (
+                          <Badge className="ml-1 bg-primary text-white text-[9px] px-1.5 py-0">
+                            Active
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-muted-foreground font-mono text-xs">{m.version}</td>
+                      <td className="px-3 py-3">
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-[10px]",
+                            m.status === "Validated"
+                              ? "border-emerald-500/40 text-emerald-600 bg-emerald-500/5"
+                              : "border-amber-500/40 text-amber-600 bg-amber-500/5"
+                          )}
+                        >
+                          {m.status}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-3 text-xs text-muted-foreground">{m.featureList.length}</td>
+                      <td className="px-3 py-3 tabular-nums font-semibold text-primary">{m.rocAuc?.toFixed(2) ?? "—"}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{m.trainedAt?.slice(0, 10) ?? "Not trained"}</td>
+                      <td className="px-6 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => setModelToView(m)}
+                            title="Inspect Details (Read)"
+                            className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setModelToEdit(m)}
+                            title="Edit Model (Update)"
+                            className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setModelToDelete(m)}
+                            title="Delete Model (Delete)"
+                            className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-600"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </CardContent>
       </Card>
+
+      {/* Model CRUD Dialogs */}
+      <CreateModelDialog open={createOpen} onOpenChange={setCreateOpen} />
+      <EditModelDialog model={modelToEdit} open={!!modelToEdit} onOpenChange={(o) => !o && setModelToEdit(null)} />
+      <ViewModelDetailsDialog model={modelToView} open={!!modelToView} onOpenChange={(o) => !o && setModelToView(null)} />
+      <DeleteModelAlert model={modelToDelete} open={!!modelToDelete} onOpenChange={(o) => !o && setModelToDelete(null)} />
 
       <Tabs defaultValue="overview">
         <TabsList className="flex w-full flex-wrap justify-start gap-1 h-auto bg-muted/60 p-1">

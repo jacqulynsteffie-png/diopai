@@ -59,8 +59,11 @@ interface AppState {
   cases: ResearchCase[];
   addCase: (c: ResearchCase) => void;
   updateCase: (id: string, patch: Partial<ResearchCase>) => void;
+  deleteCase: (id: string) => boolean;
   models: ModelVersion[];
   addModel: (m: ModelVersion) => void;
+  updateModel: (id: string, patch: Partial<ModelVersion>) => void;
+  deleteModel: (id: string) => boolean;
   clearResearchData: () => void;
   resetDemoData: () => void;
   hydrateFromDb: () => Promise<void>;
@@ -224,9 +227,65 @@ export const useAppStore = create<AppState>()(
     }));
     persistToDb(true);
   },
+  deleteCase: (id) => {
+    const user = get().currentUser;
+    if (user?.role !== "Admin") {
+      return false;
+    }
+    const targetCase = get().cases.find((c) => c.id === id);
+    set((s) => ({
+      cases: s.cases.filter((c) => c.id !== id),
+      selectedCaseId: s.selectedCaseId === id ? null : s.selectedCaseId,
+    }));
+    get().addAuditLog({
+      timestamp: new Date().toISOString(),
+      user: user.name,
+      action: "Deleted research case",
+      module: "Cases",
+      caseId: targetCase?.caseId || id,
+      status: "Warning",
+      detail: `Research case ${targetCase?.caseId || id} was deleted by Admin ${user.name}.`,
+    });
+    persistToDb(true);
+    return true;
+  },
 
   models: generateDemoModels(),
-  addModel: (m) => { set((s) => ({ models: [m, ...s.models] })); persistToDb(); },
+  addModel: (m) => { set((s) => ({ models: [m, ...s.models] })); persistToDb(true); },
+  updateModel: (id, patch) => {
+    set((s) => ({
+      models: s.models.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+    }));
+    const user = get().currentUser;
+    get().addAuditLog({
+      timestamp: new Date().toISOString(),
+      user: user?.name || "System",
+      action: "Updated model configuration",
+      module: "Models",
+      caseId: id,
+      status: "Success",
+      detail: `Model ${id} was updated.`,
+    });
+    persistToDb(true);
+  },
+  deleteModel: (id) => {
+    const user = get().currentUser;
+    const target = get().models.find((m) => m.id === id);
+    set((s) => ({
+      models: s.models.filter((m) => m.id !== id),
+    }));
+    get().addAuditLog({
+      timestamp: new Date().toISOString(),
+      user: user?.name || "System",
+      action: "Deleted model from registry",
+      module: "Models",
+      caseId: id,
+      status: "Warning",
+      detail: `Model ${target?.algorithm ?? ""} ${target?.version ?? ""} (${id}) was deleted by ${user?.name || "Admin"}.`,
+    });
+    persistToDb(true);
+    return true;
+  },
   clearResearchData: () => {
     set({
       cases: [],

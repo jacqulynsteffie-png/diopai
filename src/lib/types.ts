@@ -35,7 +35,14 @@ export type BoneQualityType = "Type I" | "Type II" | "Type III" | "Type IV";
 export type PredictionStatus = "Pending" | "Completed" | "Not Available";
 export type CaseStatus = "Draft" | "Active" | "Archived";
 export type ModelStatus = "Validated" | "Development" | "Not Available";
-export type ModelAlgorithm = "Logistic Regression" | "Random Forest" | "XGBoost";
+export type ModelAlgorithm =
+  | "Logistic Regression"
+  | "Random Forest"
+  | "XGBoost"
+  | "Deep Neural Network"
+  | "LightGBM"
+  | "Gradient Boosting"
+  | (string & {});
 export type UserRole = "Admin" | "Researcher";
 
 // Outcome classification. The exact outcome definition must come from the research
@@ -114,6 +121,8 @@ export interface PredictionRecord {
 
 export interface ModelVersion {
   id: string;
+  name?: string;
+  description?: string;
   version: string;
   algorithm: ModelAlgorithm;
   status: ModelStatus;
