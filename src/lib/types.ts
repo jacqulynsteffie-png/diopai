@@ -208,6 +208,7 @@ export type ViewId =
   | "clinical"
   | "outcomes"
   | "prediction"
+  | "patient-consultation"
   | "model-performance"
   | "feature-analysis"
   | "dataset"

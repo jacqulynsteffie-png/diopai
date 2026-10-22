@@ -13,6 +13,7 @@ import {
   AlertCircle,
   ChevronRight,
   Search,
+  Sparkles,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -208,9 +209,12 @@ export function DashboardView() {
               CBCT-derived features.
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={openNewCase} className="bg-brand-gradient text-white">
-              + New Research Case
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => setView("patient-consultation")} className="bg-brand-gradient text-white gap-1.5 shadow-sm">
+              <Sparkles className="h-4 w-4" /> Live Patient AI Consultation
+            </Button>
+            <Button variant="outline" onClick={openNewCase}>
+              + New Case
             </Button>
             <Button variant="outline" onClick={() => setView("prediction")}>
               Run Prediction

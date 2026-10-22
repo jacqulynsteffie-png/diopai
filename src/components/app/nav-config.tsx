@@ -36,6 +36,7 @@ export const NAV: NavItem[] = [
   { id: "outcomes", label: "Outcomes", shortLabel: "Outcomes", icon: Target, group: "Research" },
 
   { id: "prediction", label: "Predictions", shortLabel: "Predict", icon: Brain, group: "AI" },
+  { id: "patient-consultation", label: "Patient AI Consultation", shortLabel: "Patient AI", icon: Stethoscope, group: "AI" },
   { id: "model-performance", label: "Model Performance", shortLabel: "Models", icon: Activity, group: "AI" },
   { id: "feature-analysis", label: "Feature Analysis", shortLabel: "Features", icon: BarChart3, group: "AI" },
 

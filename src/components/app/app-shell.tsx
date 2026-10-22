@@ -16,6 +16,7 @@ import { CbctWorkspace } from "@/components/views/cbct-workspace";
 import { ClinicalView } from "@/components/views/clinical-view";
 import { OutcomesView } from "@/components/views/outcomes-view";
 import { PredictionView } from "@/components/views/prediction-view";
+import { PatientConsultationView } from "@/components/views/patient-consultation-view";
 import { ModelPerformanceView } from "@/components/views/model-performance-view";
 import { FeatureAnalysisView } from "@/components/views/feature-analysis-view";
 import { DatasetView } from "@/components/views/dataset-view";
@@ -32,6 +33,7 @@ const VIEW_COMPONENTS: Record<string, React.ComponentType> = {
   clinical: ClinicalView,
   outcomes: OutcomesView,
   prediction: PredictionView,
+  "patient-consultation": PatientConsultationView,
   "model-performance": ModelPerformanceView,
   "feature-analysis": FeatureAnalysisView,
   dataset: DatasetView,
@@ -84,7 +86,7 @@ export function AppShell() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              className="mx-auto w-full max-w-[1500px] px-3 py-4 sm:px-6 sm:py-6 lg:px-8"
+              className="mx-auto w-full max-w-[1500px] px-3 py-4 pb-24 sm:px-6 sm:py-6 lg:px-8 lg:pb-8"
             >
               <ViewComponent />
             </motion.div>

@@ -201,7 +201,7 @@ export const useAppStore = create<AppState>()(
   theme: "light",
   setTheme: (t) => set({ theme: t }),
 
-  cases: [],
+  cases: generateDemoCases(128),
   addCase: (c) => { set((s) => ({ cases: [c, ...s.cases] })); persistToDb(true); },
   updateCase: (id, patch) => {
     set((s) => ({
@@ -210,7 +210,7 @@ export const useAppStore = create<AppState>()(
     persistToDb(true);
   },
 
-  models: [],
+  models: generateDemoModels(),
   addModel: (m) => { set((s) => ({ models: [m, ...s.models] })); persistToDb(); },
   clearResearchData: () => {
     set({
@@ -254,7 +254,7 @@ export const useAppStore = create<AppState>()(
     });
     persistToDb();
   },
-  datasets: [],
+  datasets: generateDemoDatasets(),
   addDataset: (d) => { set((s) => ({ datasets: [d, ...s.datasets] })); persistToDb(); },
   auditLogs: [],
   addAuditLog: (l) => {
@@ -270,7 +270,7 @@ export const useAppStore = create<AppState>()(
   addUser: (u) => { set((s) => ({ users: [u, ...s.users] })); persistToDb(); },
   updateUser: (id, patch) => { set((s) => ({ users: s.users.map((u) => (u.id === id ? { ...u, ...patch } : u)) })); persistToDb(); },
   removeUser: (id) => { set((s) => ({ users: s.users.filter((u) => u.id !== id) })); persistToDb(); },
-  reports: [],
+  reports: generateDemoReports(),
   addReport: (r) => { set((s) => ({ reports: [r, ...s.reports] })); persistToDb(); },
   stats: DEMO_STATS,
       };

@@ -58,6 +58,7 @@ export function CommandPalette() {
     { id: "clinical", label: "Clinical Data", hint: "Clinical variables", icon: Stethoscope, group: "Navigation", action: () => setView("clinical") },
     { id: "outcomes", label: "Outcomes", hint: "Documented outcomes", icon: Target, group: "Navigation", action: () => setView("outcomes") },
     { id: "prediction", label: "AI Predictions", hint: "Outcome prediction", icon: Brain, group: "AI", action: () => setView("prediction") },
+    { id: "patient-consultation", label: "Live Patient AI Consultation", hint: "Patient intake & feasibility", icon: Stethoscope, group: "AI", action: () => setView("patient-consultation") },
     { id: "model-performance", label: "Model Performance", hint: "Model evaluation", icon: Activity, group: "AI", action: () => setView("model-performance") },
     { id: "feature-analysis", label: "Feature Analysis", hint: "Feature importance", icon: BarChart3, group: "AI", action: () => setView("feature-analysis") },
     { id: "dataset", label: "Dataset", hint: "Import & validate", icon: Database, group: "Data", action: () => setView("dataset") },

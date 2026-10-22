@@ -209,8 +209,8 @@ export function CasesView() {
             <Button variant="outline" size="sm" onClick={() => toast({ title: "Export started", description: "Filtered cases exported as CSV (demo)." })}>
               <Download className="h-4 w-4" /> Export
             </Button>
-            <Button size="sm" className="bg-brand-gradient text-white" onClick={openNewCase}>
-              <Plus className="h-4 w-4" /> New Research Case
+            <Button size="sm" className="bg-brand-gradient text-white shrink-0" onClick={openNewCase}>
+              <Plus className="h-4 w-4" /> <span className="sm:hidden">New Case</span><span className="hidden sm:inline">New Research Case</span>
             </Button>
           </div>
         </div>

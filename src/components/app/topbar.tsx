@@ -39,6 +39,7 @@ const VIEW_TITLES: Record<string, { title: string; subtitle: string }> = {
   clinical: { title: "Clinical Data", subtitle: "Approved research clinical variables." },
   outcomes: { title: "Outcomes", subtitle: "Documented implant outcomes per research protocol." },
   prediction: { title: "AI Outcome Prediction", subtitle: "Research-use model predictions and explanations." },
+  "patient-consultation": { title: "Live Patient AI Consultation", subtitle: "Interactive real-patient intake, model selection, implant feasibility plan, and dataset enrollment." },
   "model-performance": { title: "Model Performance", subtitle: "Scientific evaluation of predictive models." },
   "feature-analysis": { title: "Feature Analysis", subtitle: "Feature importance, SHAP, and distributions." },
   dataset: { title: "Dataset", subtitle: "Research dataset import, validation, and quality." },
