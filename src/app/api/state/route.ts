@@ -12,7 +12,7 @@ export async function GET() {
   // 1. Primary Source: Supabase Cloud Storage (accessible across all devices: desktop, mobile, tablet)
   try {
     const cloud = await downloadJsonFromSupabase<any>("state.json");
-    if (cloud?.ok && cloud.data && Array.isArray(cloud.data.cases) && cloud.data.cases.length > 0) {
+    if (cloud?.ok && cloud.data && (Array.isArray(cloud.data.cases) || cloud.data.initialized)) {
       return NextResponse.json(
         {
           ok: true,
@@ -37,11 +37,19 @@ export async function GET() {
     const row = await db.appState.findUnique({ where: { key: KEY } });
     if (row && row.value) {
       const parsed = JSON.parse(row.value);
-      return NextResponse.json({
-        ok: true,
-        state: parsed,
-        source: "database",
-      });
+      return NextResponse.json(
+        {
+          ok: true,
+          state: parsed,
+          source: "database",
+        },
+        {
+          headers: {
+            "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+            Pragma: "no-cache",
+          },
+        }
+      );
     }
   } catch (e) {
     console.warn("SQLite fetch fallback error:", (e as Error).message);
@@ -55,6 +63,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const state = body?.state ?? {};
+    state.initialized = true;
     const value = JSON.stringify(state);
 
     // 1. Primary: Save to Supabase Cloud Storage so all devices receive it immediately

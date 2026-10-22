@@ -289,6 +289,8 @@ export interface SyncSummary {
  */
 export async function syncStateToSupabase(state: {
   cases?: unknown[];
+  deletedCaseIds?: string[];
+  initialized?: boolean;
   datasets?: unknown[];
   models?: unknown[];
   reports?: unknown[];
@@ -299,8 +301,16 @@ export async function syncStateToSupabase(state: {
   const filesSynced: string[] = [];
 
   const operations = [
-    { name: "state.json", data: { ...state, syncedAt: timestamp } },
-    { name: "cases.json", data: { count: state.cases?.length || 0, items: state.cases || [], syncedAt: timestamp } },
+    { name: "state.json", data: { ...state, initialized: true, syncedAt: timestamp } },
+    {
+      name: "cases.json",
+      data: {
+        count: state.cases?.length || 0,
+        items: state.cases || [],
+        deletedCaseIds: state.deletedCaseIds || [],
+        syncedAt: timestamp,
+      },
+    },
     { name: "datasets.json", data: { count: state.datasets?.length || 0, items: state.datasets || [], syncedAt: timestamp } },
     { name: "models.json", data: { count: state.models?.length || 0, items: state.models || [], syncedAt: timestamp } },
     { name: "reports.json", data: { count: state.reports?.length || 0, items: state.reports || [], syncedAt: timestamp } },

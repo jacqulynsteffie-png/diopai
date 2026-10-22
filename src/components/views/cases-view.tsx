@@ -86,11 +86,11 @@ export function CasesView() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await syncToCloud();
       await hydrateFromDb();
+      const currentCount = useAppStore.getState().cases.length;
       toast({
         title: "Research Cases Synchronized",
-        description: `All ${cases.length} research records synchronized with Supabase Cloud.`,
+        description: `Current research database has ${currentCount} records (synchronized with Supabase Cloud).`,
       });
     } catch {
       toast({

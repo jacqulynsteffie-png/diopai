@@ -61,15 +61,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // If reset requested or state was empty, seed with the full scientific demo dataset
-    if (body?.reset || !state || !state.cases?.length) {
+    // Only reseed sample dataset if explicit reset is requested or if completely uninitialized
+    if (body?.reset || (!state && !body?.state)) {
       state = {
         cases: generateDemoCases(128),
+        deletedCaseIds: [],
         datasets: generateDemoDatasets(),
         models: generateDemoModels(),
         reports: generateDemoReports(),
         auditLogs: generateDemoAuditLogs(),
         users: generateDemoUsers(),
+        initialized: true,
       };
       // also cache in db
       await db.appState

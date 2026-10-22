@@ -95,6 +95,7 @@ export const useAppStore = create<AppState>()(
         const execute = async (): Promise<boolean> => {
           const s = get();
           const state = {
+            initialized: true,
             cases: s.cases,
             deletedCaseIds: s.deletedCaseIds,
             datasets: s.datasets,
@@ -161,7 +162,7 @@ export const useAppStore = create<AppState>()(
       },
       view: targetView,
     });
-    // hydrate durable cloud state (so data added on another device is immediately visible)
+    // hydrate durable cloud state (so data added or deleted on another device is immediately visible)
     get().hydrateFromDb();
   },
   syncToCloud: async () => {
@@ -183,20 +184,21 @@ export const useAppStore = create<AppState>()(
         const deletedSet = new Set(mergedDeleted);
 
         let finalCases: ResearchCase[] = [];
-        if (Array.isArray(st.cases) && st.cases.length > 0) {
+        if (Array.isArray(st.cases)) {
+          // Canonical cloud state: if cloud says cases is empty (or has items), respect it directly!
           finalCases = st.cases.filter((c: ResearchCase) => !deletedSet.has(c.id));
-        } else {
-          finalCases = (cur.cases || []).filter((c: ResearchCase) => !deletedSet.has(c.id));
+        } else if (Array.isArray(cur.cases)) {
+          finalCases = cur.cases.filter((c: ResearchCase) => !deletedSet.has(c.id));
         }
 
         set({
           cases: finalCases,
           deletedCaseIds: mergedDeleted,
-          datasets: st.datasets?.length ? st.datasets : cur.datasets,
-          models: st.models?.length ? st.models : cur.models,
-          reports: st.reports?.length ? st.reports : cur.reports,
-          auditLogs: st.auditLogs?.length ? st.auditLogs : cur.auditLogs,
-          users: st.users?.length ? st.users : cur.users,
+          datasets: Array.isArray(st.datasets) ? st.datasets : cur.datasets,
+          models: Array.isArray(st.models) ? st.models : cur.models,
+          reports: Array.isArray(st.reports) ? st.reports : cur.reports,
+          auditLogs: Array.isArray(st.auditLogs) && st.auditLogs.length > 0 ? st.auditLogs : cur.auditLogs,
+          users: Array.isArray(st.users) && st.users.length > 0 ? st.users : cur.users,
         });
       }
     } catch {
@@ -319,9 +321,12 @@ export const useAppStore = create<AppState>()(
     return true;
   },
   clearResearchData: () => {
+    const cur = get();
+    const allIds = cur.cases.map((c) => c.id);
+    const nextDeleted = Array.from(new Set([...(cur.deletedCaseIds || []), ...allIds]));
     set({
       cases: [],
-      deletedCaseIds: [],
+      deletedCaseIds: nextDeleted,
       datasets: [],
       models: [],
       reports: [],
@@ -329,16 +334,16 @@ export const useAppStore = create<AppState>()(
         {
           id: `log_${Date.now()}`,
           timestamp: new Date().toISOString(),
-          user: "System",
+          user: cur.currentUser?.name || "System",
           action: "Cleared all research data",
           module: "System",
           caseId: null,
           status: "Warning",
-          detail: "All cases, datasets, models and reports cleared.",
+          detail: "All cases, datasets, models and reports cleared by Admin.",
         },
       ],
     });
-    persistToDb();
+    persistToDb(true);
   },
   resetDemoData: () => {
     set({
@@ -360,7 +365,7 @@ export const useAppStore = create<AppState>()(
         },
       ],
     });
-    persistToDb();
+    persistToDb(true);
   },
   datasets: generateDemoDatasets(),
   addDataset: (d) => { set((s) => ({ datasets: [d, ...s.datasets] })); persistToDb(); },

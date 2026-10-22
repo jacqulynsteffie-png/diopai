@@ -60,11 +60,10 @@ export function Topbar() {
   const handleSync = async () => {
     setSyncing(true);
     try {
-      await syncToCloud();
       await hydrateFromDb();
       toast({
         title: "Cloud Synchronized",
-        description: "Research data synchronized with Supabase Cloud.",
+        description: "Research data pulled and synchronized with Supabase Cloud.",
       });
     } catch {
       toast({
