@@ -58,6 +58,7 @@ interface AppState {
   addModel: (m: ModelVersion) => void;
   clearResearchData: () => void;
   resetDemoData: () => void;
+  hydrateFromDb: () => Promise<void>;
   datasets: DatasetRecord[];
   addDataset: (d: DatasetRecord) => void;
   auditLogs: AuditLog[];
@@ -73,14 +74,68 @@ interface AppState {
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set, get) => ({
+    (set, get) => {
+      // Debounced server-side persistence (durable, cross-device)
+      let dbTimer: ReturnType<typeof setTimeout> | null = null;
+      function persistToDb() {
+        if (typeof window === "undefined") return;
+        if (dbTimer) clearTimeout(dbTimer);
+        dbTimer = setTimeout(() => {
+          const s = get();
+          const state = {
+            cases: s.cases,
+            datasets: s.datasets,
+            models: s.models,
+            reports: s.reports,
+            auditLogs: s.auditLogs,
+            users: s.users,
+          };
+          fetch("/api/state", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ state }),
+          }).catch(() => {});
+        }, 150);
+      }
+      function merge<T extends { id: string }>(db: T[], local: T[]): T[] {
+        const out = [...db];
+        for (const x of local) if (!out.some((y) => y.id === x.id)) out.push(x);
+        return out;
+      }
+      return {
   authenticated: false,
   currentUser: {
     name: "Dr. A. Researcher",
     role: "Admin",
     email: "a.researcher@diop-ai.research",
   },
-  login: () => set({ authenticated: true }),
+  login: () => {
+    set({ authenticated: true });
+    // hydrate durable server-side state (so data added on another device/mode is visible)
+    get().hydrateFromDb();
+  },
+  hydrateFromDb: async () => {
+    if (typeof window === "undefined") return;
+    try {
+      const res = await fetch("/api/state");
+      const data = await res.json();
+      if (data?.state) {
+        const st = data.state;
+        const cur = get();
+        set({
+          // merge DB + local (dedup by id) so cross-device data appears without losing local
+          cases: st.cases?.length ? merge(st.cases, cur.cases) : cur.cases,
+          datasets: st.datasets?.length ? merge(st.datasets, cur.datasets) : cur.datasets,
+          models: st.models?.length ? merge(st.models, cur.models) : cur.models,
+          reports: st.reports?.length ? merge(st.reports, cur.reports) : cur.reports,
+          auditLogs: st.auditLogs?.length ? merge(st.auditLogs, cur.auditLogs) : cur.auditLogs,
+          users: st.users?.length ? merge(st.users, cur.users) : cur.users,
+        });
+      }
+    } catch {
+      /* non-blocking */
+    }
+  },
   logout: () => set({ authenticated: false, view: "dashboard" }),
 
   view: "dashboard",
@@ -102,15 +157,17 @@ export const useAppStore = create<AppState>()(
   setTheme: (t) => set({ theme: t }),
 
   cases: [],
-  addCase: (c) => set((s) => ({ cases: [c, ...s.cases] })),
-  updateCase: (id, patch) =>
+  addCase: (c) => { set((s) => ({ cases: [c, ...s.cases] })); persistToDb(); },
+  updateCase: (id, patch) => {
     set((s) => ({
       cases: s.cases.map((c) => (c.id === id ? { ...c, ...patch } : c)),
-    })),
+    }));
+    persistToDb();
+  },
 
   models: [],
-  addModel: (m) => set((s) => ({ models: [m, ...s.models] })),
-  clearResearchData: () =>
+  addModel: (m) => { set((s) => ({ models: [m, ...s.models] })); persistToDb(); },
+  clearResearchData: () => {
     set({
       cases: [],
       datasets: [],
@@ -128,8 +185,10 @@ export const useAppStore = create<AppState>()(
           detail: "All cases, datasets, models and reports cleared.",
         },
       ],
-    }),
-  resetDemoData: () =>
+    });
+    persistToDb();
+  },
+  resetDemoData: () => {
     set({
       cases: generateDemoCases(128),
       datasets: generateDemoDatasets(),
@@ -147,25 +206,30 @@ export const useAppStore = create<AppState>()(
           detail: "Research dataset restored.",
         },
       ],
-    }),
+    });
+    persistToDb();
+  },
   datasets: [],
-  addDataset: (d) => set((s) => ({ datasets: [d, ...s.datasets] })),
+  addDataset: (d) => { set((s) => ({ datasets: [d, ...s.datasets] })); persistToDb(); },
   auditLogs: [],
-  addAuditLog: (l) =>
+  addAuditLog: (l) => {
     set((s) => ({
       auditLogs: [
         { ...l, id: `log_${Date.now()}_${Math.floor(Math.random() * 999)}` },
         ...s.auditLogs,
       ],
-    })),
+    }));
+    persistToDb();
+  },
   users: generateDemoUsers(),
-  addUser: (u) => set((s) => ({ users: [u, ...s.users] })),
-  updateUser: (id, patch) => set((s) => ({ users: s.users.map((u) => (u.id === id ? { ...u, ...patch } : u)) })),
-  removeUser: (id) => set((s) => ({ users: s.users.filter((u) => u.id !== id) })),
+  addUser: (u) => { set((s) => ({ users: [u, ...s.users] })); persistToDb(); },
+  updateUser: (id, patch) => { set((s) => ({ users: s.users.map((u) => (u.id === id ? { ...u, ...patch } : u)) })); persistToDb(); },
+  removeUser: (id) => { set((s) => ({ users: s.users.filter((u) => u.id !== id) })); persistToDb(); },
   reports: [],
-  addReport: (r) => set((s) => ({ reports: [r, ...s.reports] })),
+  addReport: (r) => { set((s) => ({ reports: [r, ...s.reports] })); persistToDb(); },
   stats: DEMO_STATS,
-    }),
+      };
+    },
     {
       name: "diop-ai-research-v1",
       // persist only durable data + sidebar; never persist auth/session/view

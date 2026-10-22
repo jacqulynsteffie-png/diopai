@@ -164,3 +164,11 @@ model AuditLog {
   @@index([timestamp])
   @@index([module])
 }
+
+// Key-value store for durable, cross-device research state (survives any client
+// localStorage isolation). Stores cases/datasets/models as a JSON blob.
+model AppState {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

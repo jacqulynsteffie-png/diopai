@@ -538,3 +538,29 @@ Verification (Agent Browser @ 390×844 + VLM):
 
 Stage Summary:
 - Mobile view polished: AI status "other button" hidden on mobile, bottom nav reduced to 5 items, topbar de-cluttered (theme hidden), labels visible, no overlap.
+
+---
+Task ID: cross-device-persistence (data visible in mobile after desktop upload)
+Agent: main (orchestrator)
+Task: Data uploaded in desktop not visible in mobile view — robust server-side persistence.
+
+Root cause:
+- Data was only in client localStorage (Zustand persist). When the mobile preview mode isolates/clears localStorage (or a different device), the data disappears. The server (SQLite) had no record of user-added cases/datasets.
+
+Fix — server-side durable persistence:
+- Added `AppState` key-value table to Prisma schema (stores cases/datasets/models/reports/auditLogs/users as one JSON blob). db:push applied.
+- New `GET/POST /api/state` route: POST writes the full research state blob; GET returns it.
+- Store: added `persistToDb()` (debounced 150ms) called by EVERY data mutation (addCase/addModel/addDataset/addReport/addUser/updateUser/removeUser/addAuditLog/updateCase/clearResearchData/resetDemoData).
+- Store: added `hydrateFromDb()` — fetches GET /api/state on login and MERGES (dedup by id) DB data into the store, so cross-device data appears without losing local data.
+- `login()` now triggers `hydrateFromDb()` after auth.
+- Cleared the stale seeded DB so it starts from zero (matches the empty store init).
+
+Verification (Agent Browser):
+- Cleared DB + localStorage → fresh zero state.
+- Desktop: added case RC-8194 via wizard → POST /api/state wrote it to the SQLite DB (GET /api/state confirms).
+- Switched to MOBILE viewport (390×844), cleared localStorage (simulating isolated mobile storage), reloaded, signed in.
+- hydrateFromDb fetched the DB → case RC-8194 VISIBLE in mobile Cases view + Dashboard shows "Total Research Cases: 1".
+- No console/runtime errors; lint clean.
+
+Stage Summary:
+- Data added in desktop now persists to the server (SQLite) and is visible in mobile (any mode/device) via DB hydration on login — survives localStorage isolation. Merges DB + local (dedup by id) so no data is lost.
