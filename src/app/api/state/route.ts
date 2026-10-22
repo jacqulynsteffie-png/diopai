@@ -7,6 +7,21 @@ export const dynamic = "force-dynamic";
 
 const KEY = "research-state-v1";
 
+const CORS_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  Pragma: "no-cache",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+}
+
 // GET /api/state — durable, cross-device research state
 export async function GET() {
   // 1. Primary Source: Supabase Cloud Storage (accessible across all devices: desktop, mobile, tablet)
@@ -20,12 +35,7 @@ export async function GET() {
           source: "supabase",
           syncedAt: cloud.data.syncedAt,
         },
-        {
-          headers: {
-            "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-            Pragma: "no-cache",
-          },
-        }
+        { headers: CORS_HEADERS }
       );
     }
   } catch (e) {
@@ -43,19 +53,14 @@ export async function GET() {
           state: parsed,
           source: "database",
         },
-        {
-          headers: {
-            "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-            Pragma: "no-cache",
-          },
-        }
+        { headers: CORS_HEADERS }
       );
     }
   } catch (e) {
     console.warn("SQLite fetch fallback error:", (e as Error).message);
   }
 
-  return NextResponse.json({ ok: true, state: null });
+  return NextResponse.json({ ok: true, state: null }, { headers: CORS_HEADERS });
 }
 
 // POST /api/state — persist state to Supabase Cloud and local SQLite

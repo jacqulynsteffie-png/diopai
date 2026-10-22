@@ -325,6 +325,17 @@ export function CasesView() {
               Showing <span className="font-medium text-foreground">{filtered.length}</span> research cases ·
               de-identified
             </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="h-6 text-[11px] text-muted-foreground hover:text-foreground gap-1 px-1.5"
+              title="Force sync from Supabase Cloud"
+            >
+              <RefreshCw className={cn("h-3 w-3", refreshing && "animate-spin")} />
+              {refreshing ? "Syncing..." : "Sync"}
+            </Button>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Rows</span>
