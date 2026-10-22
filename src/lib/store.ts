@@ -57,9 +57,11 @@ interface AppState {
 
   // data (demo)
   cases: ResearchCase[];
+  deletedCaseIds: string[];
   addCase: (c: ResearchCase) => void;
   updateCase: (id: string, patch: Partial<ResearchCase>) => void;
   deleteCase: (id: string) => boolean;
+  deleteCases: (ids: string[]) => boolean;
   models: ModelVersion[];
   addModel: (m: ModelVersion) => void;
   updateModel: (id: string, patch: Partial<ModelVersion>) => void;
@@ -94,6 +96,7 @@ export const useAppStore = create<AppState>()(
           const s = get();
           const state = {
             cases: s.cases,
+            deletedCaseIds: s.deletedCaseIds,
             datasets: s.datasets,
             models: s.models,
             reports: s.reports,
@@ -173,27 +176,28 @@ export const useAppStore = create<AppState>()(
         const st = data.state;
         const cur = get();
 
-        const casesRes = st.cases?.length ? merge(st.cases, cur.cases) : { merged: cur.cases, hasNewLocal: (cur.cases?.length || 0) > 0 };
-        const datasetsRes = st.datasets?.length ? merge(st.datasets, cur.datasets) : { merged: cur.datasets, hasNewLocal: false };
-        const modelsRes = st.models?.length ? merge(st.models, cur.models) : { merged: cur.models, hasNewLocal: false };
-        const reportsRes = st.reports?.length ? merge(st.reports, cur.reports) : { merged: cur.reports, hasNewLocal: false };
-        const auditLogsRes = st.auditLogs?.length ? merge(st.auditLogs, cur.auditLogs) : { merged: cur.auditLogs, hasNewLocal: false };
-        const usersRes = st.users?.length ? merge(st.users, cur.users) : { merged: cur.users, hasNewLocal: false };
+        // Combined set of all deleted cases (from local and cloud)
+        const mergedDeleted = Array.from(
+          new Set([...(cur.deletedCaseIds || []), ...(st.deletedCaseIds || [])])
+        );
+        const deletedSet = new Set(mergedDeleted);
+
+        let finalCases: ResearchCase[] = [];
+        if (Array.isArray(st.cases) && st.cases.length > 0) {
+          finalCases = st.cases.filter((c: ResearchCase) => !deletedSet.has(c.id));
+        } else {
+          finalCases = (cur.cases || []).filter((c: ResearchCase) => !deletedSet.has(c.id));
+        }
 
         set({
-          cases: casesRes.merged,
-          datasets: datasetsRes.merged,
-          models: modelsRes.merged,
-          reports: reportsRes.merged,
-          auditLogs: auditLogsRes.merged,
-          users: usersRes.merged,
+          cases: finalCases,
+          deletedCaseIds: mergedDeleted,
+          datasets: st.datasets?.length ? st.datasets : cur.datasets,
+          models: st.models?.length ? st.models : cur.models,
+          reports: st.reports?.length ? st.reports : cur.reports,
+          auditLogs: st.auditLogs?.length ? st.auditLogs : cur.auditLogs,
+          users: st.users?.length ? st.users : cur.users,
         });
-
-        // If local client had items that were not yet in the cloud database (e.g. 129th case added on Desktop),
-        // immediately push to cloud so that all other devices (Mobile) will see the constant database state!
-        if (casesRes.hasNewLocal || datasetsRes.hasNewLocal || modelsRes.hasNewLocal || reportsRes.hasNewLocal) {
-          persistToDb(true);
-        }
       }
     } catch {
       /* non-blocking */
@@ -219,6 +223,7 @@ export const useAppStore = create<AppState>()(
   theme: "light",
   setTheme: (t) => set({ theme: t }),
 
+  deletedCaseIds: [],
   cases: generateDemoCases(128),
   addCase: (c) => { set((s) => ({ cases: [c, ...s.cases] })); persistToDb(true); },
   updateCase: (id, patch) => {
@@ -233,8 +238,10 @@ export const useAppStore = create<AppState>()(
       return false;
     }
     const targetCase = get().cases.find((c) => c.id === id);
+    const nextDeleted = Array.from(new Set([...(get().deletedCaseIds || []), id]));
     set((s) => ({
       cases: s.cases.filter((c) => c.id !== id),
+      deletedCaseIds: nextDeleted,
       selectedCaseId: s.selectedCaseId === id ? null : s.selectedCaseId,
     }));
     get().addAuditLog({
@@ -245,6 +252,31 @@ export const useAppStore = create<AppState>()(
       caseId: targetCase?.caseId || id,
       status: "Warning",
       detail: `Research case ${targetCase?.caseId || id} was deleted by Admin ${user.name}.`,
+    });
+    persistToDb(true);
+    return true;
+  },
+  deleteCases: (ids) => {
+    const user = get().currentUser;
+    if (user?.role !== "Admin") {
+      return false;
+    }
+    const idSet = new Set(ids);
+    const targetCases = get().cases.filter((c) => idSet.has(c.id));
+    const nextDeleted = Array.from(new Set([...(get().deletedCaseIds || []), ...ids]));
+    set((s) => ({
+      cases: s.cases.filter((c) => !idSet.has(c.id)),
+      deletedCaseIds: nextDeleted,
+      selectedCaseId: s.selectedCaseId && idSet.has(s.selectedCaseId) ? null : s.selectedCaseId,
+    }));
+    get().addAuditLog({
+      timestamp: new Date().toISOString(),
+      user: user.name,
+      action: `Bulk deleted ${ids.length} research cases`,
+      module: "Cases",
+      caseId: targetCases.map((c) => c.caseId).join(", "),
+      status: "Warning",
+      detail: `Batch deletion of ${ids.length} case(s) (${targetCases.map((c) => c.caseId).slice(0, 5).join(", ")}${targetCases.length > 5 ? "..." : ""}) by Admin ${user.name}.`,
     });
     persistToDb(true);
     return true;
@@ -289,6 +321,7 @@ export const useAppStore = create<AppState>()(
   clearResearchData: () => {
     set({
       cases: [],
+      deletedCaseIds: [],
       datasets: [],
       models: [],
       reports: [],
@@ -310,6 +343,7 @@ export const useAppStore = create<AppState>()(
   resetDemoData: () => {
     set({
       cases: generateDemoCases(128),
+      deletedCaseIds: [],
       datasets: generateDemoDatasets(),
       models: generateDemoModels(),
       reports: generateDemoReports(),
@@ -355,6 +389,7 @@ export const useAppStore = create<AppState>()(
       // (auth stays false on SSR + first client render → LoginView matches SSR → no hydration mismatch)
       partialize: (s) => ({
         cases: s.cases,
+        deletedCaseIds: s.deletedCaseIds,
         datasets: s.datasets,
         models: s.models,
         reports: s.reports,

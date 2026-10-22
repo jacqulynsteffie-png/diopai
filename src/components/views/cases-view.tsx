@@ -22,12 +22,14 @@ import {
   RefreshCw,
   Trash2,
   Lock,
+  CheckSquare,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -60,9 +62,11 @@ import { STUDY_META, type ResearchCase } from "@/lib/types";
 type SortKey = "createdAt" | "age" | "caseId" | "prediction";
 
 export function CasesView() {
-  const { cases, openNewCase, setSelectedCase, selectedCaseId, setView, hydrateFromDb, syncToCloud, currentUser, deleteCase } = useAppStore();
+  const { cases, openNewCase, setSelectedCase, selectedCaseId, setView, hydrateFromDb, syncToCloud, currentUser, deleteCase, deleteCases } = useAppStore();
   const isAdmin = currentUser?.role === "Admin";
   const [caseToDelete, setCaseToDelete] = React.useState<ResearchCase | null>(null);
+  const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = React.useState(false);
   const { toast } = useToast();
   const [query, setQuery] = React.useState("");
   const [fOutcome, setFOutcome] = React.useState("all");
@@ -139,6 +143,32 @@ export function CasesView() {
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pageCount - 1);
   const paged = filtered.slice(safePage * pageSize, safePage * pageSize + pageSize);
+
+  const allPageSelected = paged.length > 0 && paged.every((c) => selectedIds.includes(c.id));
+  const somePageSelected = paged.some((c) => selectedIds.includes(c.id)) && !allPageSelected;
+
+  const handleToggleAllPage = () => {
+    if (allPageSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !paged.some((c) => c.id === id)));
+    } else {
+      const pageIds = paged.map((c) => c.id);
+      setSelectedIds((prev) => Array.from(new Set([...prev, ...pageIds])));
+    }
+  };
+
+  const handleToggleCase = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllFiltered = () => {
+    setSelectedIds(filtered.map((c) => c.id));
+  };
+
+  const handleClearSelection = () => {
+    setSelectedIds([]);
+  };
 
   function toggleSort(k: SortKey) {
     if (sortKey === k) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -230,13 +260,72 @@ export function CasesView() {
         </div>
       </Card>
 
-      {/* Table */}
+      {/* Table & Bulk Operations */}
       <Card className="overflow-hidden">
+        {/* Bulk Action Bar when items selected */}
+        {selectedIds.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/20 bg-primary/10 px-4 py-2.5 dark:bg-primary/15"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
+                {selectedIds.length}
+              </span>
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="font-semibold text-foreground">
+                  {selectedIds.length} {selectedIds.length === 1 ? "case" : "cases"} selected
+                </span>
+                {selectedIds.length < filtered.length && (
+                  <button
+                    onClick={handleSelectAllFiltered}
+                    className="ml-1 text-[11px] font-medium text-primary hover:underline"
+                  >
+                    (Select all {filtered.length} filtered cases)
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearSelection}
+                className="h-7 text-xs text-muted-foreground hover:text-foreground"
+              >
+                Deselect All
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  if (!isAdmin) {
+                    toast({
+                      title: "Admin Privilege Required",
+                      description: `Only research platform administrators can delete case records. Your current role is "${currentUser?.role || "Researcher"}".`,
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  setBulkDeleteOpen(true);
+                }}
+                className="h-7 gap-1.5 text-xs font-semibold shadow-xs"
+              >
+                {isAdmin ? <Trash2 className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                Delete Selected ({selectedIds.length})
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
         <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <p className="text-xs text-muted-foreground">
-            Showing <span className="font-medium text-foreground">{filtered.length}</span> research cases ·
-            de-identified
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-muted-foreground">
+              Showing <span className="font-medium text-foreground">{filtered.length}</span> research cases ·
+              de-identified
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Rows</span>
             <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(0); }}>
@@ -251,6 +340,14 @@ export function CasesView() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-muted-foreground">
+                <th className="w-10 px-3 py-2.5 text-center">
+                  <Checkbox
+                    checked={allPageSelected ? true : somePageSelected ? "indeterminate" : false}
+                    onCheckedChange={handleToggleAllPage}
+                    aria-label="Select all on this page"
+                    title="Select all on this page"
+                  />
+                </th>
                 <Th onClick={() => toggleSort("caseId")} active={sortKey === "caseId"} dir={sortDir}>Case ID</Th>
                 <Th onClick={() => toggleSort("age")} active={sortKey === "age"} dir={sortDir}>Age</Th>
                 <th className="px-3 py-2.5 font-medium">Sex</th>
@@ -266,7 +363,7 @@ export function CasesView() {
             <tbody>
               {paged.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-16 text-center">
+                  <td colSpan={11} className="px-6 py-16 text-center">
                     <EmptyState
                       title="No research cases found"
                       desc="Try adjusting filters, or create your first research case to begin."
@@ -275,69 +372,85 @@ export function CasesView() {
                   </td>
                 </tr>
               ) : (
-                paged.map((c) => (
-                  <tr key={c.id} className="border-b border-border/60 transition-colors hover:bg-muted/40">
-                    <td className="px-6 py-3 font-mono text-xs font-medium text-primary">{c.caseId}</td>
-                    <td className="px-3 py-3">{c.age}</td>
-                    <td className="px-3 py-3">{c.sex}</td>
-                    <td className="px-3 py-3">{c.implantSite}</td>
-                    <td className="px-3 py-3">
-                      <Badge variant={c.cbctAvailable ? "secondary" : "outline"} className="text-[10px]">
-                        {c.cbctAvailable ? c.cbctQuality : "N/A"}
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-3">
-                      <Badge variant="outline" className={cn("text-[10px]", c.eligibility === "Eligible" ? "border-emerald-200 text-emerald-700" : c.eligibility === "Requires Review" ? "border-amber-200 text-amber-700" : "border-red-200 text-red-600")}>
-                        {c.eligibility}
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-3">
-                      {c.prediction ? (
-                        <span className={cn("inline-flex items-center gap-1 text-xs font-medium", c.prediction.predictedOutcome === "Success" ? "text-emerald-600" : "text-red-500")}>
-                          {c.prediction.predictedOutcome}
-                          <span className="text-muted-foreground">· {Math.round(c.prediction.probability * 100)}%</span>
-                        </span>
-                      ) : <span className="text-xs text-muted-foreground">—</span>}
-                    </td>
-                    <td className="px-3 py-3">
-                      {c.outcome?.documentedOutcome ? (
-                        <Badge variant="outline" className={cn("text-[10px]", c.outcome.documentedOutcome === "Success" ? "border-emerald-200 text-emerald-700" : "border-red-200 text-red-600")}>
-                          {c.outcome.documentedOutcome}
+                paged.map((c) => {
+                  const isSelected = selectedIds.includes(c.id);
+                  return (
+                    <tr
+                      key={c.id}
+                      className={cn(
+                        "border-b border-border/60 transition-colors hover:bg-muted/40",
+                        isSelected && "bg-primary/5 hover:bg-primary/10"
+                      )}
+                    >
+                      <td className="w-10 px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => handleToggleCase(c.id)}
+                          aria-label={`Select case ${c.caseId}`}
+                        />
+                      </td>
+                      <td className="px-6 py-3 font-mono text-xs font-medium text-primary">{c.caseId}</td>
+                      <td className="px-3 py-3">{c.age}</td>
+                      <td className="px-3 py-3">{c.sex}</td>
+                      <td className="px-3 py-3">{c.implantSite}</td>
+                      <td className="px-3 py-3">
+                        <Badge variant={c.cbctAvailable ? "secondary" : "outline"} className="text-[10px]">
+                          {c.cbctAvailable ? c.cbctQuality : "N/A"}
                         </Badge>
-                      ) : <span className="text-xs text-muted-foreground">Pending</span>}
-                    </td>
-                    <td className="px-3 py-3 text-xs text-muted-foreground">{c.createdAt.slice(0, 10)}</td>
-                    <td className="px-6 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <IconAction label="View" onClick={() => setSelectedCase(c.id)}><Eye className="h-3.5 w-3.5" /></IconAction>
-                        <IconAction label="Edit" onClick={() => { setSelectedCase(c.id); }}><Pencil className="h-3.5 w-3.5" /></IconAction>
-                        <IconAction label="Prediction" onClick={() => { setSelectedCase(c.id); setView("prediction"); }}><Brain className="h-3.5 w-3.5" /></IconAction>
-                        <IconAction label="Report" onClick={() => { setView("reports"); }}><FileText className="h-3.5 w-3.5" /></IconAction>
-                        <IconAction
-                          label={isAdmin ? "Delete Case (Admin Only)" : "Delete Restricted (Admin Only)"}
-                          danger
-                          onClick={() => {
-                            if (!isAdmin) {
-                              toast({
-                                title: "Admin Privilege Required",
-                                description: `Only research platform administrators can delete case records. Your current role is "${currentUser?.role || "Researcher"}".`,
-                                variant: "destructive",
-                              });
-                              return;
-                            }
-                            setCaseToDelete(c);
-                          }}
-                        >
-                          {isAdmin ? (
-                            <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-red-600 transition-colors" />
-                          ) : (
-                            <Lock className="h-3.5 w-3.5 opacity-40 hover:opacity-90 transition-opacity" />
-                          )}
-                        </IconAction>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-3 py-3">
+                        <Badge variant="outline" className={cn("text-[10px]", c.eligibility === "Eligible" ? "border-emerald-200 text-emerald-700" : c.eligibility === "Requires Review" ? "border-amber-200 text-amber-700" : "border-red-200 text-red-600")}>
+                          {c.eligibility}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-3">
+                        {c.prediction ? (
+                          <span className={cn("inline-flex items-center gap-1 text-xs font-medium", c.prediction.predictedOutcome === "Success" ? "text-emerald-600" : "text-red-500")}>
+                            {c.prediction.predictedOutcome}
+                            <span className="text-muted-foreground">· {Math.round(c.prediction.probability * 100)}%</span>
+                          </span>
+                        ) : <span className="text-xs text-muted-foreground">—</span>}
+                      </td>
+                      <td className="px-3 py-3">
+                        {c.outcome?.documentedOutcome ? (
+                          <Badge variant="outline" className={cn("text-[10px]", c.outcome.documentedOutcome === "Success" ? "border-emerald-200 text-emerald-700" : "border-red-200 text-red-600")}>
+                            {c.outcome.documentedOutcome}
+                          </Badge>
+                        ) : <span className="text-xs text-muted-foreground">Pending</span>}
+                      </td>
+                      <td className="px-3 py-3 text-xs text-muted-foreground">{c.createdAt.slice(0, 10)}</td>
+                      <td className="px-6 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <IconAction label="View" onClick={() => setSelectedCase(c.id)}><Eye className="h-3.5 w-3.5" /></IconAction>
+                          <IconAction label="Edit" onClick={() => { setSelectedCase(c.id); }}><Pencil className="h-3.5 w-3.5" /></IconAction>
+                          <IconAction label="Prediction" onClick={() => { setSelectedCase(c.id); setView("prediction"); }}><Brain className="h-3.5 w-3.5" /></IconAction>
+                          <IconAction label="Report" onClick={() => { setView("reports"); }}><FileText className="h-3.5 w-3.5" /></IconAction>
+                          <IconAction
+                            label={isAdmin ? "Delete Case (Admin Only)" : "Delete Restricted (Admin Only)"}
+                            danger
+                            onClick={() => {
+                              if (!isAdmin) {
+                                toast({
+                                  title: "Admin Privilege Required",
+                                  description: `Only research platform administrators can delete case records. Your current role is "${currentUser?.role || "Researcher"}".`,
+                                  variant: "destructive",
+                                });
+                                return;
+                              }
+                              setCaseToDelete(c);
+                            }}
+                          >
+                            {isAdmin ? (
+                              <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-red-600 transition-colors" />
+                            ) : (
+                              <Lock className="h-3.5 w-3.5 opacity-40 hover:opacity-90 transition-opacity" />
+                            )}
+                          </IconAction>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -351,70 +464,86 @@ export function CasesView() {
               action={<Button className="bg-brand-gradient text-white" onClick={openNewCase}><Plus className="h-4 w-4" /> New</Button>}
             />
           ) : (
-            paged.map((c) => (
-              <div key={c.id} className="rounded-xl border border-border bg-card p-3">
-                <div className="flex items-center justify-between">
-                  <button onClick={() => setSelectedCase(c.id)} className="text-left">
-                    <span className="font-mono text-xs font-semibold text-primary">{c.caseId}</span>
-                  </button>
-                  <span className="text-[10px] text-muted-foreground">{c.createdAt.slice(0, 10)}</span>
-                </div>
-                <div className="mt-1.5 flex items-center gap-2 text-xs text-foreground">
-                  <span>{c.age}y</span><span className="text-muted-foreground">·</span>
-                  <span>{c.sex}</span><span className="text-muted-foreground">·</span>
-                  <span className="truncate">{c.implantSite}</span>
-                </div>
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <Badge variant={c.cbctAvailable ? "secondary" : "outline"} className="text-[10px]">{c.cbctAvailable ? c.cbctQuality : "N/A"}</Badge>
-                  <Badge variant="outline" className={cn("text-[10px]", c.eligibility === "Eligible" ? "border-emerald-200 text-emerald-700" : c.eligibility === "Requires Review" ? "border-amber-200 text-amber-700" : "border-red-200 text-red-600")}>{c.eligibility}</Badge>
-                  {c.prediction && (
-                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", c.prediction.predictedOutcome === "Success" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600")}>
-                      {c.prediction.predictedOutcome} · {Math.round(c.prediction.probability * 100)}%
-                    </span>
+            paged.map((c) => {
+              const isSelected = selectedIds.includes(c.id);
+              return (
+                <div
+                  key={c.id}
+                  className={cn(
+                    "rounded-xl border border-border bg-card p-3 transition-colors",
+                    isSelected && "border-primary/50 bg-primary/5"
                   )}
-                  {c.outcome?.documentedOutcome && (
-                    <Badge variant="outline" className={cn("text-[10px]", c.outcome.documentedOutcome === "Success" ? "border-emerald-200 text-emerald-700" : "border-red-200 text-red-600")}>Actual: {c.outcome.documentedOutcome}</Badge>
-                  )}
-                </div>
-                <div className="mt-2.5 flex items-center justify-between border-t border-border/60 pt-2">
-                  <span className="text-[10px] text-muted-foreground">
-                    {isAdmin ? (
-                      <span className="text-emerald-600 dark:text-emerald-400 font-medium text-[10px] inline-flex items-center gap-1">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Admin
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => handleToggleCase(c.id)}
+                        aria-label={`Select case ${c.caseId}`}
+                      />
+                      <button onClick={() => setSelectedCase(c.id)} className="text-left">
+                        <span className="font-mono text-xs font-semibold text-primary">{c.caseId}</span>
+                      </button>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">{c.createdAt.slice(0, 10)}</span>
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-2 text-xs text-foreground">
+                    <span>{c.age}y</span><span className="text-muted-foreground">·</span>
+                    <span>{c.sex}</span><span className="text-muted-foreground">·</span>
+                    <span className="truncate">{c.implantSite}</span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <Badge variant={c.cbctAvailable ? "secondary" : "outline"} className="text-[10px]">{c.cbctAvailable ? c.cbctQuality : "N/A"}</Badge>
+                    <Badge variant="outline" className={cn("text-[10px]", c.eligibility === "Eligible" ? "border-emerald-200 text-emerald-700" : c.eligibility === "Requires Review" ? "border-amber-200 text-amber-700" : "border-red-200 text-red-600")}>{c.eligibility}</Badge>
+                    {c.prediction && (
+                      <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", c.prediction.predictedOutcome === "Success" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600")}>
+                        {c.prediction.predictedOutcome} · {Math.round(c.prediction.probability * 100)}%
                       </span>
-                    ) : (
-                      <span className="text-muted-foreground text-[10px]">Read-only</span>
                     )}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <IconAction label="View" onClick={() => setSelectedCase(c.id)}><Eye className="h-3.5 w-3.5" /></IconAction>
-                    <IconAction label="Prediction" onClick={() => { setSelectedCase(c.id); setView("prediction"); }}><Brain className="h-3.5 w-3.5" /></IconAction>
-                    <IconAction label="Report" onClick={() => { setView("reports"); }}><FileText className="h-3.5 w-3.5" /></IconAction>
-                    <IconAction
-                      label={isAdmin ? "Delete Case" : "Admin Only"}
-                      danger
-                      onClick={() => {
-                        if (!isAdmin) {
-                          toast({
-                            title: "Admin Privilege Required",
-                            description: "Only administrators can delete research records.",
-                            variant: "destructive",
-                          });
-                          return;
-                        }
-                        setCaseToDelete(c);
-                      }}
-                    >
+                    {c.outcome?.documentedOutcome && (
+                      <Badge variant="outline" className={cn("text-[10px]", c.outcome.documentedOutcome === "Success" ? "border-emerald-200 text-emerald-700" : "border-red-200 text-red-600")}>Actual: {c.outcome.documentedOutcome}</Badge>
+                    )}
+                  </div>
+                  <div className="mt-2.5 flex items-center justify-between border-t border-border/60 pt-2">
+                    <span className="text-[10px] text-muted-foreground">
                       {isAdmin ? (
-                        <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-red-600 transition-colors" />
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium text-[10px] inline-flex items-center gap-1">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Admin
+                        </span>
                       ) : (
-                        <Lock className="h-3.5 w-3.5 opacity-40 hover:opacity-90 transition-opacity" />
+                        <span className="text-muted-foreground text-[10px]">Read-only</span>
                       )}
-                    </IconAction>
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <IconAction label="View" onClick={() => setSelectedCase(c.id)}><Eye className="h-3.5 w-3.5" /></IconAction>
+                      <IconAction label="Prediction" onClick={() => { setSelectedCase(c.id); setView("prediction"); }}><Brain className="h-3.5 w-3.5" /></IconAction>
+                      <IconAction label="Report" onClick={() => { setView("reports"); }}><FileText className="h-3.5 w-3.5" /></IconAction>
+                      <IconAction
+                        label={isAdmin ? "Delete Case" : "Admin Only"}
+                        danger
+                        onClick={() => {
+                          if (!isAdmin) {
+                            toast({
+                              title: "Admin Privilege Required",
+                              description: "Only administrators can delete research records.",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          setCaseToDelete(c);
+                        }}
+                      >
+                        {isAdmin ? (
+                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-red-600 transition-colors" />
+                        ) : (
+                          <Lock className="h-3.5 w-3.5 opacity-40 hover:opacity-90 transition-opacity" />
+                        )}
+                      </IconAction>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
         {/* pagination */}
@@ -435,7 +564,7 @@ export function CasesView() {
 
       <CaseDetailSheet caseData={selectedCase} onRequestDelete={(c) => setCaseToDelete(c)} />
 
-      {/* Admin Delete Confirmation Modal */}
+      {/* Admin Single Delete Confirmation Modal */}
       <AlertDialog open={!!caseToDelete} onOpenChange={(open) => !open && setCaseToDelete(null)}>
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
@@ -459,11 +588,13 @@ export function CasesView() {
             <AlertDialogAction
               onClick={() => {
                 if (caseToDelete) {
-                  const ok = deleteCase(caseToDelete.id);
+                  const targetId = caseToDelete.id;
+                  const ok = deleteCase(targetId);
                   if (ok) {
+                    setSelectedIds((prev) => prev.filter((id) => id !== targetId));
                     toast({
                       title: "Research Case Deleted",
-                      description: `Case ${caseToDelete.caseId} was removed by Admin.`,
+                      description: `Case ${caseToDelete.caseId} was permanently removed.`,
                     });
                   } else {
                     toast({
@@ -478,6 +609,51 @@ export function CasesView() {
               className="bg-red-600 text-white hover:bg-red-700 font-semibold"
             >
               Delete Case (Admin)
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Admin Bulk Delete Confirmation Modal */}
+      <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <Trash2 className="h-5 w-5" /> Permanently Delete {selectedIds.length} Cases?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2 text-xs">
+              <p>
+                You have selected <strong className="font-bold text-foreground">{selectedIds.length}</strong> research cases for permanent batch removal.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                These cases will be tombstoned and permanently deleted from both local storage and Supabase Cloud. They will not reappear when the page is reloaded. An audit trail entry will be logged under Admin <strong className="text-foreground">{currentUser?.name}</strong>.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setBulkDeleteOpen(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const count = selectedIds.length;
+                const ok = deleteCases(selectedIds);
+                if (ok) {
+                  toast({
+                    title: "Cases Deleted Successfully",
+                    description: `Permanently removed ${count} research cases from database and cloud.`,
+                  });
+                  setSelectedIds([]);
+                } else {
+                  toast({
+                    title: "Bulk Deletion Failed",
+                    description: "Admin permissions required.",
+                    variant: "destructive",
+                  });
+                }
+                setBulkDeleteOpen(false);
+              }}
+              className="bg-red-600 text-white hover:bg-red-700 font-semibold"
+            >
+              Delete {selectedIds.length} Cases (Admin)
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
