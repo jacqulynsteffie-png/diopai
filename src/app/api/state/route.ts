@@ -13,12 +13,20 @@ export async function GET() {
   try {
     const cloud = await downloadJsonFromSupabase<any>("state.json");
     if (cloud?.ok && cloud.data && Array.isArray(cloud.data.cases) && cloud.data.cases.length > 0) {
-      return NextResponse.json({
-        ok: true,
-        state: cloud.data,
-        source: "supabase",
-        syncedAt: cloud.data.syncedAt,
-      });
+      return NextResponse.json(
+        {
+          ok: true,
+          state: cloud.data,
+          source: "supabase",
+          syncedAt: cloud.data.syncedAt,
+        },
+        {
+          headers: {
+            "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+            Pragma: "no-cache",
+          },
+        }
+      );
     }
   } catch (e) {
     console.warn("Supabase state fetch error:", (e as Error).message);
@@ -70,7 +78,11 @@ export async function POST(req: NextRequest) {
       console.warn("Local SQLite write skipped (serverless environment):", (e as Error).message);
     }
 
-    return NextResponse.json({ ok: true, syncedToSupabase: cloudSynced });
+    return NextResponse.json({
+      ok: true,
+      syncedToSupabase: cloudSynced,
+      casesCount: state.cases?.length || 0,
+    });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
   }

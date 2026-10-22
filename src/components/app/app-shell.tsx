@@ -47,6 +47,24 @@ export function AppShell() {
   React.useEffect(() => {
     // Automatically pull latest research data from Supabase Cloud on load
     hydrateFromDb();
+
+    // Re-sync whenever user returns to or focuses the tab (e.g. mobile browser reopened)
+    const onSync = () => {
+      hydrateFromDb();
+    };
+    window.addEventListener("focus", onSync);
+    document.addEventListener("visibilitychange", onSync);
+
+    // Periodically sync every 15 seconds so phone & desktop remain constant
+    const interval = setInterval(() => {
+      hydrateFromDb();
+    }, 15000);
+
+    return () => {
+      window.removeEventListener("focus", onSync);
+      document.removeEventListener("visibilitychange", onSync);
+      clearInterval(interval);
+    };
   }, [hydrateFromDb]);
 
   if (!authenticated) return <LoginView />;

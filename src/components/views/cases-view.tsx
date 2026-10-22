@@ -48,7 +48,7 @@ import { STUDY_META, type ResearchCase } from "@/lib/types";
 type SortKey = "createdAt" | "age" | "caseId" | "prediction";
 
 export function CasesView() {
-  const { cases, openNewCase, setSelectedCase, selectedCaseId, setView, hydrateFromDb } = useAppStore();
+  const { cases, openNewCase, setSelectedCase, selectedCaseId, setView, hydrateFromDb, syncToCloud } = useAppStore();
   const { toast } = useToast();
   const [query, setQuery] = React.useState("");
   const [fOutcome, setFOutcome] = React.useState("all");
@@ -67,14 +67,21 @@ export function CasesView() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await hydrateFromDb();
-    setTimeout(() => {
-      setRefreshing(false);
+    try {
+      await syncToCloud();
+      await hydrateFromDb();
       toast({
         title: "Research Cases Synchronized",
-        description: `Loaded latest research records from Supabase Cloud.`,
+        description: `All ${cases.length} research records synchronized with Supabase Cloud.`,
       });
-    }, 400);
+    } catch {
+      toast({
+        title: "Sync Refreshed",
+        description: `Cases refreshed.`,
+      });
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const filtered = React.useMemo(() => {

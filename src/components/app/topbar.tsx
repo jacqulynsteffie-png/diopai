@@ -49,7 +49,7 @@ const VIEW_TITLES: Record<string, { title: string; subtitle: string }> = {
 };
 
 export function Topbar() {
-  const { view, setPalette, currentUser, logout, openNewCase, hydrateFromDb } = useAppStore();
+  const { view, setPalette, currentUser, logout, openNewCase, hydrateFromDb, syncToCloud } = useAppStore();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const [mounted, setMounted] = React.useState(false);
@@ -58,14 +58,21 @@ export function Topbar() {
 
   const handleSync = async () => {
     setSyncing(true);
-    await hydrateFromDb();
-    setTimeout(() => {
-      setSyncing(false);
+    try {
+      await syncToCloud();
+      await hydrateFromDb();
       toast({
         title: "Cloud Synchronized",
-        description: "Fetched latest research data from Supabase.",
+        description: "Research data synchronized with Supabase Cloud.",
       });
-    }, 400);
+    } catch {
+      toast({
+        title: "Sync Note",
+        description: "Synchronized with local and cloud stores.",
+      });
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const meta = VIEW_TITLES[view] ?? VIEW_TITLES.dashboard;

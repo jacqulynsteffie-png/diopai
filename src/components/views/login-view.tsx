@@ -12,13 +12,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 
 export function LoginView() {
-  const { login } = useAppStore();
+  const { login, hydrateFromDb } = useAppStore();
   const { toast } = useToast();
   const [email, setEmail] = React.useState("a.researcher@diop-ai.research");
   const [password, setPassword] = React.useState("research");
   const [show, setShow] = React.useState(false);
   const [remember, setRemember] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    hydrateFromDb();
+  }, [hydrateFromDb]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();

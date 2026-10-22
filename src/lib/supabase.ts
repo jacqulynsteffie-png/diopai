@@ -9,7 +9,7 @@ export const SUPABASE_CONFIG = {
   publishableKey:
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
     process.env.SUPABASE_PUBLISHABLE_KEY ||
-    "",
+    "sb_publishable_vjv7eheQPkkxbN9tct66VQ_EroF_j9P",
   secretKey: process.env.SUPABASE_SECRET_KEY || "",
   jwksUrl:
     process.env.SUPABASE_JWKS_URL ||

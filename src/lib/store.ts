@@ -59,6 +59,7 @@ interface AppState {
   clearResearchData: () => void;
   resetDemoData: () => void;
   hydrateFromDb: () => Promise<void>;
+  syncToCloud: () => Promise<boolean>;
   datasets: DatasetRecord[];
   addDataset: (d: DatasetRecord) => void;
   auditLogs: AuditLog[];
@@ -77,11 +78,11 @@ export const useAppStore = create<AppState>()(
     (set, get) => {
       // Server-side cloud persistence (durable, cross-device via Supabase)
       let dbTimer: ReturnType<typeof setTimeout> | null = null;
-      function persistToDb(immediate = false) {
-        if (typeof window === "undefined") return;
+      function persistToDb(immediate = false): Promise<boolean> {
+        if (typeof window === "undefined") return Promise.resolve(false);
         if (dbTimer) clearTimeout(dbTimer);
 
-        const execute = () => {
+        const execute = async (): Promise<boolean> => {
           const s = get();
           const state = {
             cases: s.cases,
@@ -91,28 +92,43 @@ export const useAppStore = create<AppState>()(
             auditLogs: s.auditLogs,
             users: s.users,
           };
-          fetch("/api/state", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ state }),
-          }).catch((e) => console.warn("Cloud state persist error:", e));
+          try {
+            const res = await fetch("/api/state", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ state }),
+              keepalive: true,
+            });
+            const data = await res.json().catch(() => null);
+            return data?.ok ?? false;
+          } catch (e) {
+            console.warn("Cloud state persist error:", e);
+            return false;
+          }
         };
 
         if (immediate) {
-          execute();
+          return execute();
         } else {
-          dbTimer = setTimeout(execute, 150);
+          return new Promise<boolean>((resolve) => {
+            dbTimer = setTimeout(async () => {
+              const ok = await execute();
+              resolve(ok);
+            }, 150);
+          });
         }
       }
 
-      function merge<T extends { id: string }>(cloud: T[], local: T[]): T[] {
+      function merge<T extends { id: string }>(cloud: T[], local: T[]): { merged: T[]; hasNewLocal: boolean } {
         const out = [...cloud];
+        let hasNewLocal = false;
         for (const x of local) {
           if (!out.some((y) => y.id === x.id)) {
             out.unshift(x);
+            hasNewLocal = true;
           }
         }
-        return out;
+        return { merged: out, hasNewLocal };
       }
 
       return {
@@ -127,6 +143,9 @@ export const useAppStore = create<AppState>()(
     // hydrate durable cloud state (so data added on another device is immediately visible)
     get().hydrateFromDb();
   },
+  syncToCloud: async () => {
+    return persistToDb(true);
+  },
   hydrateFromDb: async () => {
     if (typeof window === "undefined") return;
     try {
@@ -135,15 +154,28 @@ export const useAppStore = create<AppState>()(
       if (data?.state) {
         const st = data.state;
         const cur = get();
+
+        const casesRes = st.cases?.length ? merge(st.cases, cur.cases) : { merged: cur.cases, hasNewLocal: (cur.cases?.length || 0) > 0 };
+        const datasetsRes = st.datasets?.length ? merge(st.datasets, cur.datasets) : { merged: cur.datasets, hasNewLocal: false };
+        const modelsRes = st.models?.length ? merge(st.models, cur.models) : { merged: cur.models, hasNewLocal: false };
+        const reportsRes = st.reports?.length ? merge(st.reports, cur.reports) : { merged: cur.reports, hasNewLocal: false };
+        const auditLogsRes = st.auditLogs?.length ? merge(st.auditLogs, cur.auditLogs) : { merged: cur.auditLogs, hasNewLocal: false };
+        const usersRes = st.users?.length ? merge(st.users, cur.users) : { merged: cur.users, hasNewLocal: false };
+
         set({
-          // Merge cloud state + local (putting new items at top, deduping by id)
-          cases: st.cases?.length ? merge(st.cases, cur.cases) : cur.cases,
-          datasets: st.datasets?.length ? merge(st.datasets, cur.datasets) : cur.datasets,
-          models: st.models?.length ? merge(st.models, cur.models) : cur.models,
-          reports: st.reports?.length ? merge(st.reports, cur.reports) : cur.reports,
-          auditLogs: st.auditLogs?.length ? merge(st.auditLogs, cur.auditLogs) : cur.auditLogs,
-          users: st.users?.length ? merge(st.users, cur.users) : cur.users,
+          cases: casesRes.merged,
+          datasets: datasetsRes.merged,
+          models: modelsRes.merged,
+          reports: reportsRes.merged,
+          auditLogs: auditLogsRes.merged,
+          users: usersRes.merged,
         });
+
+        // If local client had items that were not yet in the cloud database (e.g. 129th case added on Desktop),
+        // immediately push to cloud so that all other devices (Mobile) will see the constant database state!
+        if (casesRes.hasNewLocal || datasetsRes.hasNewLocal || modelsRes.hasNewLocal || reportsRes.hasNewLocal) {
+          persistToDb(true);
+        }
       }
     } catch {
       /* non-blocking */

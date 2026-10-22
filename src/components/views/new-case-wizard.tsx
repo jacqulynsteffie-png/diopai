@@ -139,7 +139,7 @@ const defaultDraft: Draft = {
 };
 
 export function NewCaseWizard() {
-  const { newCaseOpen, closeNewCase, addCase, currentUser, addAuditLog, setView, setSelectedCase } = useAppStore();
+  const { newCaseOpen, closeNewCase, addCase, currentUser, addAuditLog, setView, setSelectedCase, syncToCloud } = useAppStore();
   const { toast } = useToast();
   const [step, setStep] = React.useState(0);
   const [draft, setDraft] = React.useState<Draft>(defaultDraft);
@@ -249,6 +249,7 @@ export function NewCaseWizard() {
         status: "Success",
         detail: `Created ${c.caseId} (${c.eligibility}).`,
       });
+      syncToCloud();
       setSaving(false);
       close();
       toast({
