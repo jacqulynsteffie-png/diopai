@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Bell, Moon, Sun, ChevronDown, LogOut, User, Settings as SettingsIcon, Cloud, RefreshCw } from "lucide-react";
+import { Search, Bell, Moon, Sun, ChevronDown, LogOut, User, Settings as SettingsIcon, Cloud, RefreshCw, Sparkles } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
