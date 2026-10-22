@@ -41,12 +41,12 @@ export function BrandLogo({ className }: { className?: string }) {
   return (
     <>
       <img
-        src="/logo-brand.png"
+        src="/logo-brand.png?v=2"
         alt="Diop AI — Dental Implant Prediction AI"
         className={cn("object-contain dark:hidden", className)}
       />
       <img
-        src="/logo-brand-light.png"
+        src="/logo-brand-light.png?v=2"
         alt="Diop AI — Dental Implant Prediction AI"
         className={cn("hidden object-contain dark:block", className)}
       />
@@ -68,7 +68,7 @@ export function Logo({ className, collapsed = false }: LogoProps) {
   }
   return (
     <img
-      src="/logo-brand-light.png"
+      src="/logo-brand-light.png?v=2"
       alt="Diop AI — Dental Implant Prediction AI"
       className={cn("h-11 w-auto max-w-[210px] object-contain", className)}
     />

@@ -152,13 +152,13 @@ export function LoginView({ initialMode = "research" }: LoginViewProps) {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="absolute right-10 top-1/2 -translate-y-1/2"
         >
-          <img src="/logo-brand-light.png" alt="Diop AI" className="h-36 w-auto max-w-[320px] object-contain drop-shadow" />
+          <img src="/logo-brand-light.png?v=2" alt="Diop AI" className="h-36 w-auto max-w-[320px] object-contain drop-shadow" />
         </motion.div>
 
         {/* Left Content */}
         <div className="relative z-10 flex h-full flex-col justify-between p-12">
           <div className="flex items-center">
-            <img src="/logo-brand-light.png" alt="Diop AI — Dental Implant Prediction AI" className="h-12 w-auto max-w-[240px] object-contain" />
+            <img src="/logo-brand-light.png?v=2" alt="Diop AI — Dental Implant Prediction AI" className="h-12 w-auto max-w-[240px] object-contain" />
           </div>
 
           <div className="max-w-md space-y-4">
