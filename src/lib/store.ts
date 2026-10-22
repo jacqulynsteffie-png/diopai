@@ -24,8 +24,13 @@ import {
 interface AppState {
   // session
   authenticated: boolean;
+  loginMode: "research" | "consultation";
   currentUser: { name: string; role: "Admin" | "Researcher"; email: string };
-  login: () => void;
+  login: (
+    user?: { name: string; role: "Admin" | "Researcher"; email: string },
+    targetView?: ViewId,
+    mode?: "research" | "consultation"
+  ) => void;
   logout: () => void;
 
   // navigation
@@ -133,13 +138,23 @@ export const useAppStore = create<AppState>()(
 
       return {
   authenticated: false,
+  loginMode: "research",
   currentUser: {
     name: "Dr. A. Researcher",
     role: "Admin",
     email: "a.researcher@diop-ai.research",
   },
-  login: () => {
-    set({ authenticated: true });
+  login: (user, targetView = "dashboard", mode = "research") => {
+    set({
+      authenticated: true,
+      loginMode: mode,
+      currentUser: user || {
+        name: mode === "consultation" ? "Dr. S. Implantologist" : "Dr. A. Researcher",
+        role: "Admin",
+        email: mode === "consultation" ? "implant.specialist@diop-ai.clinic" : "a.researcher@diop-ai.research",
+      },
+      view: targetView,
+    });
     // hydrate durable cloud state (so data added on another device is immediately visible)
     get().hydrateFromDb();
   },

@@ -50,7 +50,7 @@ const VIEW_TITLES: Record<string, { title: string; subtitle: string }> = {
 };
 
 export function Topbar() {
-  const { view, setPalette, currentUser, logout, openNewCase, hydrateFromDb, syncToCloud } = useAppStore();
+  const { view, setView, setPalette, currentUser, logout, openNewCase, hydrateFromDb, syncToCloud, loginMode } = useAppStore();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const [mounted, setMounted] = React.useState(false);
@@ -224,32 +224,41 @@ export function Topbar() {
       {/* Date */}
       <div className="hidden xl:flex flex-col text-right leading-tight pr-1">
         <span className="text-[11px] font-medium text-foreground">{today}</span>
-        <span className="text-[10px] text-muted-foreground">Research Session</span>
+        <span className={cn("text-[10px] font-semibold", loginMode === "consultation" ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground")}>
+          {loginMode === "consultation" ? "🩺 Live Patient Session" : "🔬 Research Session"}
+        </span>
       </div>
 
       {/* Profile */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-2 rounded-lg border border-border bg-card/60 py-1 pl-1 pr-2 transition-colors hover:bg-card">
-            <div className="grid h-7 w-7 place-items-center rounded-full bg-brand-gradient text-[11px] font-bold text-white">
+            <div className={cn(
+              "grid h-7 w-7 place-items-center rounded-full text-[11px] font-bold text-white shadow-sm",
+              loginMode === "consultation" ? "bg-gradient-to-br from-emerald-600 to-teal-600" : "bg-brand-gradient"
+            )}>
               {currentUser.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
             </div>
             <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent align="end" className="w-60">
           <DropdownMenuLabel>
             <div className="flex flex-col">
-              <span>{currentUser.name}</span>
-              <span className="text-xs font-normal text-muted-foreground">{currentUser.email}</span>
+              <span className="font-semibold">{currentUser.name}</span>
+              <span className="text-xs font-normal text-muted-foreground truncate">{currentUser.email}</span>
+              <span className="mt-1 text-[10px] font-medium text-primary">
+                {loginMode === "consultation" ? "Clinical Implant Specialist" : "Research Investigator"}
+              </span>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => useAppStore.getState().setView("settings")}>
-            <User className="mr-2 h-4 w-4" /> Profile
+          <DropdownMenuItem onClick={() => setView(view === "patient-consultation" ? "dashboard" : "patient-consultation")}>
+            <Sparkles className="mr-2 h-4 w-4 text-emerald-600" />
+            {view === "patient-consultation" ? "Switch to Research Platform" : "Open Patient AI Consultation"}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => useAppStore.getState().setView("settings")}>
-            <SettingsIcon className="mr-2 h-4 w-4" /> Settings
+          <DropdownMenuItem onClick={() => setView("settings")}>
+            <User className="mr-2 h-4 w-4" /> Profile & Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
