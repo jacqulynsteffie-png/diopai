@@ -75,12 +75,13 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => {
-      // Debounced server-side persistence (durable, cross-device)
+      // Server-side cloud persistence (durable, cross-device via Supabase)
       let dbTimer: ReturnType<typeof setTimeout> | null = null;
-      function persistToDb() {
+      function persistToDb(immediate = false) {
         if (typeof window === "undefined") return;
         if (dbTimer) clearTimeout(dbTimer);
-        dbTimer = setTimeout(() => {
+
+        const execute = () => {
           const s = get();
           const state = {
             cases: s.cases,
@@ -94,14 +95,26 @@ export const useAppStore = create<AppState>()(
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ state }),
-          }).catch(() => {});
-        }, 150);
+          }).catch((e) => console.warn("Cloud state persist error:", e));
+        };
+
+        if (immediate) {
+          execute();
+        } else {
+          dbTimer = setTimeout(execute, 150);
+        }
       }
-      function merge<T extends { id: string }>(db: T[], local: T[]): T[] {
-        const out = [...db];
-        for (const x of local) if (!out.some((y) => y.id === x.id)) out.push(x);
+
+      function merge<T extends { id: string }>(cloud: T[], local: T[]): T[] {
+        const out = [...cloud];
+        for (const x of local) {
+          if (!out.some((y) => y.id === x.id)) {
+            out.unshift(x);
+          }
+        }
         return out;
       }
+
       return {
   authenticated: false,
   currentUser: {
@@ -111,19 +124,19 @@ export const useAppStore = create<AppState>()(
   },
   login: () => {
     set({ authenticated: true });
-    // hydrate durable server-side state (so data added on another device/mode is visible)
+    // hydrate durable cloud state (so data added on another device is immediately visible)
     get().hydrateFromDb();
   },
   hydrateFromDb: async () => {
     if (typeof window === "undefined") return;
     try {
-      const res = await fetch("/api/state");
+      const res = await fetch("/api/state", { cache: "no-store" });
       const data = await res.json();
       if (data?.state) {
         const st = data.state;
         const cur = get();
         set({
-          // merge DB + local (dedup by id) so cross-device data appears without losing local
+          // Merge cloud state + local (putting new items at top, deduping by id)
           cases: st.cases?.length ? merge(st.cases, cur.cases) : cur.cases,
           datasets: st.datasets?.length ? merge(st.datasets, cur.datasets) : cur.datasets,
           models: st.models?.length ? merge(st.models, cur.models) : cur.models,
@@ -157,12 +170,12 @@ export const useAppStore = create<AppState>()(
   setTheme: (t) => set({ theme: t }),
 
   cases: [],
-  addCase: (c) => { set((s) => ({ cases: [c, ...s.cases] })); persistToDb(); },
+  addCase: (c) => { set((s) => ({ cases: [c, ...s.cases] })); persistToDb(true); },
   updateCase: (id, patch) => {
     set((s) => ({
       cases: s.cases.map((c) => (c.id === id ? { ...c, ...patch } : c)),
     }));
-    persistToDb();
+    persistToDb(true);
   },
 
   models: [],

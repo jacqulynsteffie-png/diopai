@@ -19,6 +19,7 @@ import {
   ClipboardCheck,
   ScanLine,
   Activity,
+  RefreshCw,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { Card } from "@/components/ui/card";
@@ -47,7 +48,7 @@ import { STUDY_META, type ResearchCase } from "@/lib/types";
 type SortKey = "createdAt" | "age" | "caseId" | "prediction";
 
 export function CasesView() {
-  const { cases, openNewCase, setSelectedCase, selectedCaseId, setView } = useAppStore();
+  const { cases, openNewCase, setSelectedCase, selectedCaseId, setView, hydrateFromDb } = useAppStore();
   const { toast } = useToast();
   const [query, setQuery] = React.useState("");
   const [fOutcome, setFOutcome] = React.useState("all");
@@ -58,6 +59,23 @@ export function CasesView() {
   const [pageSize, setPageSize] = React.useState(10);
   const [sortKey, setSortKey] = React.useState<SortKey>("createdAt");
   const [sortDir, setSortDir] = React.useState<"asc" | "desc">("desc");
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  React.useEffect(() => {
+    hydrateFromDb();
+  }, [hydrateFromDb]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await hydrateFromDb();
+    setTimeout(() => {
+      setRefreshing(false);
+      toast({
+        title: "Research Cases Synchronized",
+        description: `Loaded latest research records from Supabase Cloud.`,
+      });
+    }, 400);
+  };
 
   const filtered = React.useMemo(() => {
     let r = [...cases];
@@ -166,7 +184,18 @@ export function CasesView() {
               </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={refreshing}
+              onClick={handleRefresh}
+              className="gap-1.5 text-xs text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10"
+              title="Sync latest research cases from Supabase Cloud"
+            >
+              <RefreshCw className={cn("h-3.5 w-3.5", refreshing && "animate-spin")} />
+              {refreshing ? "Syncing..." : "Sync Cloud"}
+            </Button>
             <Button variant="outline" size="sm" onClick={() => toast({ title: "Import dataset", description: "Open the Dataset view to upload CSV/Excel." })}>
               <Upload className="h-4 w-4" /> Import
             </Button>

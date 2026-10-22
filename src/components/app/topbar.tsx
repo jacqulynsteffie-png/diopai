@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Bell, Moon, Sun, ChevronDown, LogOut, User, Settings as SettingsIcon } from "lucide-react";
+import { Search, Bell, Moon, Sun, ChevronDown, LogOut, User, Settings as SettingsIcon, Cloud, RefreshCw } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
@@ -49,11 +49,24 @@ const VIEW_TITLES: Record<string, { title: string; subtitle: string }> = {
 };
 
 export function Topbar() {
-  const { view, setPalette, currentUser, logout, openNewCase } = useAppStore();
+  const { view, setPalette, currentUser, logout, openNewCase, hydrateFromDb } = useAppStore();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const [mounted, setMounted] = React.useState(false);
+  const [syncing, setSyncing] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    await hydrateFromDb();
+    setTimeout(() => {
+      setSyncing(false);
+      toast({
+        title: "Cloud Synchronized",
+        description: "Fetched latest research data from Supabase.",
+      });
+    }, 400);
+  };
 
   const meta = VIEW_TITLES[view] ?? VIEW_TITLES.dashboard;
   const today = new Date().toLocaleDateString("en-US", {
@@ -150,6 +163,24 @@ export function Topbar() {
             </button>
           </TooltipTrigger>
           <TooltipContent>Toggle {theme === "dark" ? "light" : "dark"} mode</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      {/* Supabase Cloud sync button — visible on mobile and desktop */}
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="relative grid h-9 w-9 place-items-center rounded-lg border border-border bg-card/60 text-muted-foreground transition-colors hover:text-emerald-500 hover:border-emerald-500/40"
+              aria-label="Sync with Supabase Cloud"
+            >
+              <Cloud className={cn("h-4 w-4", syncing ? "animate-pulse text-emerald-500" : "text-muted-foreground")} />
+              <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-background" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>{syncing ? "Syncing with Supabase..." : "Synced with Supabase Cloud · Tap to refresh"}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
 

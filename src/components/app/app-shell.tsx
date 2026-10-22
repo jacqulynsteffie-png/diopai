@@ -42,7 +42,12 @@ const VIEW_COMPONENTS: Record<string, React.ComponentType> = {
 };
 
 export function AppShell() {
-  const { authenticated, view } = useAppStore();
+  const { authenticated, view, hydrateFromDb } = useAppStore();
+
+  React.useEffect(() => {
+    // Automatically pull latest research data from Supabase Cloud on load
+    hydrateFromDb();
+  }, [hydrateFromDb]);
 
   if (!authenticated) return <LoginView />;
 
